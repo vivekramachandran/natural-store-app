@@ -1,4 +1,7 @@
-import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.10/esm/index.js';
+
+import { BrowserMultiFormatReader, NotFoundException } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.10/esm/index.js';
+
+
 
 // ----------------------
 // 1. Supabase connection
@@ -13,33 +16,43 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 let codeReader;
 
 async function startScanner() {
-    const scannerContainer = document.getElementById('scanner-container');
-    scannerContainer.innerHTML = ''; // clear old video if any
-
-    const video = document.createElement('video');
-    video.setAttribute('autoplay', '');
-    video.setAttribute('playsinline', '');
-    video.style.width = '100%';
-    scannerContainer.appendChild(video);
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const ctx = overlay.getContext('2d');
 
     codeReader = new BrowserMultiFormatReader();
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
         video.srcObject = stream;
 
         codeReader.decodeFromVideoDevice(null, video, async (result, err) => {
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+
             if (result) {
+                const points = result.resultPoints;
+                if (points && points.length > 1) {
+                    ctx.strokeStyle = 'lime';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+
                 const code = result.text;
                 document.getElementById('scanResult').innerText = "Barcode: " + code;
+
                 // stop scanner
                 codeReader.reset();
                 video.srcObject.getTracks().forEach(track => track.stop());
+
+                // fetch product info
                 await lookupProductByBarcode(code);
-            }
-            if (err && !(err instanceof ZXing.NotFoundException)) {
+            } else if (err && !(err instanceof NotFoundException)) {
                 console.error(err);
             }
         });
