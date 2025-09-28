@@ -18,14 +18,18 @@ function startScanner() {
       target: document.querySelector('#scanner-container'),
       constraints: {
         facingMode: "environment", // back camera
-        width: { min: 320 },
-        height: { min: 240 }
+        width: { min: 640 },
+        height: { min: 480 }
       },
     },
     decoder: {
       readers: ["ean_reader"] // EAN-13 barcodes
     },
-    locate: true
+    locate: true,
+    locator: {
+    patchSize: "medium", // try "large" if still fails
+    halfSample: false
+}
   }, function(err) {
     if (err) {
       console.error(err);
