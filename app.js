@@ -1,48 +1,46 @@
-function startScanner() {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Barcode Scanner with Guide Box</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
+  h1 { margin-top: 20px; }
+  #scanner-container {
+    width: 100vw;
+    height: 70vh;
+    position: relative;
+    border: 2px solid #ccc;
+  }
+  #scanner-container canvas,
+  #scanner-container video {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  #guide-box {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60%; height: 30%;
+    border: 3px dashed red;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+  }
+  #scanResult { font-weight: bold; margin: 20px 0; }
+  button { padding: 12px 24px; margin-bottom: 20px; cursor: pointer; font-size: 16px; }
+</style>
+</head>
+<body>
+<h1>Barcode Scanner with Guide</h1>
 
-   Quagga.init({
-    inputStream: {
-        name: "Live",
-        type: "LiveStream",
-        target: document.querySelector('#scanner-container'),
-        constraints: {
-            facingMode: "environment",
-            width: { min: 640 },
-            height: { min: 480 }
-        },
-    },
-    decoder: {
-        readers: ["ean_reader"],
-        multiple: false
-    },
-    locate: true,
-    locator: {
-        patchSize: "large",
-        halfSample: false
-    }
-}, function(err) { ... });
- 
+<div id="scanner-container">
+  <div id="guide-box"></div>
+</div>
 
+<p id="scanResult">No barcode detected yet.</p>
+<button onclick="startScanner()">Start Scanner</button>
 
-    Quagga.onDetected(function(result) {
-        const code = result.codeResult.code;
-        document.getElementById('scanResult').innerText = "Barcode detected: " + code;
-        Quagga.stop();
-    });
-
-    Quagga.onProcessed(function(result) {
-        const drawingCtx = Quagga.canvas.ctx.overlay;
-        const drawingCanvas = Quagga.canvas.dom.overlay;
-        if (result) {
-            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            if (result.boxes) {
-                result.boxes.filter(b => b !== result.box).forEach(box => {
-                    Quagga.ImageDebug.drawPath(box, {x:0,y:1}, drawingCtx, {color: "green", lineWidth: 2});
-                });
-            }
-            if (result.box) {
-                Quagga.ImageDebug.drawPath(result.box, {x:0,y:1}, drawingCtx, {color: "#00F", lineWidth: 2});
-            }
-        }
-    });
-}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
