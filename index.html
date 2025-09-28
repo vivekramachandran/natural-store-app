@@ -2,50 +2,447 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Barcode Scanner with Guide Box</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Barcode Scanner</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
-  h1 { margin-top: 20px; }
+  body { 
+    font-family: Arial, sans-serif; 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    background: #f0f0f0;
+    padding: 20px;
+  }
+  h1 { color: #333; margin-bottom: 20px; }
+  
   #scanner-container {
-    width: 100vw;
-    height: 70vh;
+    width: 90vw;
+    max-width: 500px;
+    height: 400px;
     position: relative;
-    border: 2px solid #ccc;
+    border: 2px solid #333;
+    margin: 20px 0;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
   }
 
-#scanner-container canvas {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: 100% !important;
-}
-
+  #video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
   
   #guide-box {
     position: absolute;
-    top: 50%; left: 50%;
-    width: 60%; height: 30%;
-    border: 3px dashed red;
+    top: 50%; 
+    left: 50%;
+    width: 80%; 
+    height: 20%;
+    border: 3px dashed #ff0000;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 10;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 4px;
   }
-  #scanResult { font-weight: bold; margin: 20px 0; }
-  button { padding: 12px 24px; margin-bottom: 20px; cursor: pointer; font-size: 16px; }
+  
+  #guide-text {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ff0000;
+    font-size: 14px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  
+  #result {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin: 20px 0;
+    min-height: 50px;
+    width: 90vw;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  button { 
+    padding: 12px 24px; 
+    cursor: pointer; 
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  
+  button:hover { 
+    background: #0056b3; 
+    transform: translateY(-1px);
+  }
+  
+  button:disabled { 
+    background: #ccc; 
+    cursor: not-allowed; 
+    transform: none;
+  }
+  
+  #stopBtn { background: #dc3545; }
+  #stopBtn:hover { background: #c82333; }
+  
+  .error { color: #dc3545; }
+  .success { color: #28a745; }
+  .info { color: #007bff; }
+  
+  .library-info {
+    background: #e9ecef;
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+    font-size: 12px;
+    color: #6c757d;
+    max-width: 500px;
+    text-align: center;
+  }
+  
+  @media (max-width: 600px) {
+    #scanner-container {
+      width: 95vw;
+      height: 300px;
+    }
+    #result {
+      width: 95vw;
+    }
+  }
 </style>
 </head>
 <body>
-<h1>Barcode Scanner with Guide</h1>
+<h1>🔍 Modern Barcode Scanner</h1>
 
-<div id="scanner-container">
-  <div id="guide-box"></div>
+<div class="library-info">
+  Using ZXing-js library for better barcode recognition
 </div>
 
-<p id="scanResult">No barcode detected yet.</p>
-<button onclick="startScanner()">Start Scanner</button>
+<div id="scanner-container">
+  <video id="video" playsinline></video>
+  <div id="guide-box">
+    <div id="guide-text">Align barcode here</div>
+  </div>
+</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-<script src="app.js"></script>
+<div id="result">
+  Click "Start Scanner" to begin scanning barcodes
+</div>
+
+<div class="buttons">
+  <button id="startBtn" onclick="startScanner()">Start Scanner</button>
+  <button id="stopBtn" onclick="stopScanner()" disabled>Stop Scanner</button>
+  <button onclick="switchCamera()" id="switchBtn" disabled>Switch Camera</button>
+</div>
+
+<div class="library-info">
+  Supports: UPC-A, UPC-E, EAN-13, EAN-8, Code 39, Code 93, Code 128, ITF, Codabar, QR Code, Data Matrix
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-library/0.20.0/umd/index.min.js"></script>
+<script>
+let codeReader = null;
+let isScanning = false;
+let currentStream = null;
+let cameras = [];
+let currentCameraIndex = 0;
+
+// Initialize ZXing code reader
+function initializeCodeReader() {
+    codeReader = new ZXing.BrowserMultiFormatReader();
+}
+
+// Get available cameras
+async function getCameras() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        cameras = devices.filter(device => device.kind === 'videoinput');
+        console.log('Available cameras:', cameras.length);
+        
+        if (cameras.length > 1) {
+            document.getElementById('switchBtn').style.display = 'inline-block';
+        }
+        
+        return cameras;
+    } catch (err) {
+        console.error('Error getting cameras:', err);
+        return [];
+    }
+}
+
+// Check camera permissions
+async function checkCameraPermissions() {
+    try {
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            throw new Error('HTTPS required for camera access');
+        }
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop());
+        return true;
+    } catch (err) {
+        console.error('Permission check failed:', err);
+        return false;
+    }
+}
+
+// Start scanner
+async function startScanner() {
+    if (isScanning) return;
+    
+    document.getElementById('result').innerHTML = '<span class="info">🔍 Checking camera permissions...</span>';
+    document.getElementById('startBtn').disabled = true;
+    
+    // Check permissions
+    const hasPermission = await checkCameraPermissions();
+    if (!hasPermission) {
+        document.getElementById('result').innerHTML = `
+            <span class="error">❌ Camera access denied<br><br>
+            <strong>Please:</strong><br>
+            • Make sure you're using HTTPS<br>
+            • Allow camera access when prompted<br>
+            • Check browser camera settings</span>
+        `;
+        document.getElementById('startBtn').disabled = false;
+        return;
+    }
+    
+    // Initialize reader if needed
+    if (!codeReader) {
+        initializeCodeReader();
+    }
+    
+    try {
+        document.getElementById('result').innerHTML = '<span class="info">📹 Starting camera...</span>';
+        
+        // Get available cameras
+        await getCameras();
+        
+        // Use back camera if available, otherwise use default
+        let constraints = { video: { facingMode: 'environment' } };
+        
+        if (cameras.length > 0) {
+            // Try to use the selected camera
+            const selectedCamera = cameras[currentCameraIndex];
+            constraints = { 
+                video: { 
+                    deviceId: selectedCamera.deviceId,
+                    width: { ideal: 1280, max: 1920 },
+                    height: { ideal: 720, max: 1080 }
+                } 
+            };
+        }
+        
+        // Start scanning
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('video').srcObject = currentStream;
+        
+        isScanning = true;
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('switchBtn').disabled = false;
+        
+        document.getElementById('result').innerHTML = '<span class="info">📱 Scanning... align barcode in the red box</span>';
+        
+        // Start the continuous scan
+        scanContinuously();
+        
+    } catch (err) {
+        console.error('Error starting scanner:', err);
+        let errorMsg = '<span class="error">❌ Failed to start camera<br><br>';
+        
+        if (err.name === 'NotAllowedError') {
+            errorMsg += 'Camera permission denied! Please allow camera access and try again.';
+        } else if (err.name === 'NotFoundError') {
+            errorMsg += 'No camera found on this device.';
+        } else if (err.name === 'NotReadableError') {
+            errorMsg += 'Camera is busy. Close other camera apps and try again.';
+        } else {
+            errorMsg += `Error: ${err.message}`;
+        }
+        
+        errorMsg += '</span>';
+        document.getElementById('result').innerHTML = errorMsg;
+        document.getElementById('startBtn').disabled = false;
+    }
+}
+
+// Continuous scanning function
+function scanContinuously() {
+    if (!isScanning || !currentStream) return;
+    
+    const video = document.getElementById('video');
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        try {
+            // Create canvas to capture video frame
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get image data
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Try to decode barcode
+            codeReader.decodeFromImageData(imageData)
+                .then(result => {
+                    if (result && isScanning) {
+                        onBarcodeDetected(result);
+                    }
+                })
+                .catch(err => {
+                    // No barcode found, continue scanning
+                    if (isScanning) {
+                        setTimeout(scanContinuously, 100);
+                    }
+                });
+                
+        } catch (err) {
+            console.error('Scanning error:', err);
+            if (isScanning) {
+                setTimeout(scanContinuously, 100);
+            }
+        }
+    } else {
+        // Wait for video to be ready
+        if (isScanning) {
+            setTimeout(scanContinuously, 100);
+        }
+    }
+}
+
+// Handle barcode detection
+function onBarcodeDetected(result) {
+    console.log('Barcode detected:', result);
+    
+    // Play success sound
+    playBeep();
+    
+    // Display result
+    document.getElementById('result').innerHTML = `
+        <span class="success">✅ Barcode Detected!<br>
+        <strong>Code:</strong> ${result.text}<br>
+        <strong>Format:</strong> ${result.format}</span>
+    `;
+    
+    // Auto-stop after detection
+    setTimeout(() => {
+        stopScanner();
+    }, 2000);
+}
+
+// Stop scanner
+function stopScanner() {
+    isScanning = false;
+    
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+    }
+    
+    document.getElementById('video').srcObject = null;
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('switchBtn').disabled = true;
+    
+    document.getElementById('result').innerHTML = 'Scanner stopped. Click "Start Scanner" to scan again.';
+    
+    console.log('Scanner stopped');
+}
+
+// Switch between cameras
+async function switchCamera() {
+    if (!isScanning || cameras.length <= 1) return;
+    
+    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+    console.log('Switching to camera:', cameras[currentCameraIndex].label);
+    
+    // Stop current stream
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+    }
+    
+    // Start with new camera
+    try {
+        const constraints = { 
+            video: { 
+                deviceId: cameras[currentCameraIndex].deviceId,
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 }
+            } 
+        };
+        
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('video').srcObject = currentStream;
+        
+        document.getElementById('result').innerHTML = '<span class="info">📱 Camera switched! Scanning...</span>';
+        
+    } catch (err) {
+        console.error('Error switching camera:', err);
+        document.getElementById('result').innerHTML = '<span class="error">❌ Failed to switch camera</span>';
+    }
+}
+
+// Play beep sound
+function playBeep() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'square';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (e) {
+        console.log('Could not play beep sound');
+    }
+}
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    if (isScanning) {
+        stopScanner();
+    }
+});
+
+// Initialize when page loads
+window.addEventListener('load', () => {
+    initializeCodeReader();
+});
+</script>
 </body>
 </html>
