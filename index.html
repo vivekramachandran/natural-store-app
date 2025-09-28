@@ -2,28 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ZXing Barcode Scanner</title>
+  <title>Natural Product Health Checker</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    #scanner-container { width: 100%; max-width: 400px; height: 300px; border: 1px solid #ccc; position: relative; margin-bottom: 10px; }
-    #video { width: 100%; height: 100%; }
-    #overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; }
+    h1, h2, h3 { color: #333; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    #reader { width: 100%; max-width: 400px; margin-bottom: 10px; border: 1px solid #ccc; }
     button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h1>ZXing Barcode Scanner</h1>
+  <h1>Scan Product Barcode</h1>
 
-  <div id="scanner-container">
-    <video id="video" autoplay playsinline></video>
-    <canvas id="overlay"></canvas>
-  </div>
-
+  <div id="reader"></div>
   <p id="scanResult">No barcode detected yet.</p>
   <button onclick="startScanner()">Start Scanner</button>
 
-  <!-- ZXing UMD -->
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.10/lib/index.min.js"></script>
+  <div id="mainProduct"></div>
+  <div id="comparisonTable"></div>
+  <div id="ingredientsTable"></div>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
