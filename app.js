@@ -45,9 +45,28 @@ function startScanner() {
     Quagga.stop();
     await lookupProductByBarcode(code);
   });
-  Quagga.onProcessed(function(result) {
-    console.log(result.codeResult); // should show {code: "1234567890123", format: "ean_13"}
+  
+Quagga.onProcessed(function(result) {
+    let drawingCtx = Quagga.canvas.ctx.overlay;
+    let drawingCanvas = Quagga.canvas.dom.overlay;
+    
+    if (result) {
+        if (result.boxes) {
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            result.boxes.filter(b => b !== result.box).forEach(function(box) {
+                Quagga.ImageDebug.drawPath(box, {x:0,y:1}, drawingCtx, {color: "green", lineWidth: 2});
+            });
+        }
+        if (result.box) {
+            Quagga.ImageDebug.drawPath(result.box, {x:0,y:1}, drawingCtx, {color: "#00F", lineWidth: 2});
+        }
+        if (result.codeResult && result.codeResult.code) {
+            console.log("Detected code:", result.codeResult.code);
+        }
+    }
 });
+
+  
 }
 
 // --------------------
