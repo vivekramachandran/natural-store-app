@@ -1,4 +1,5 @@
 
+import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.10/esm/index.js';
 
 // ----------------------
 // 1. Supabase connection
@@ -7,68 +8,54 @@ const supabaseUrl = 'https://fdfdxszvenmbdkmxkuej.supabase.co'; // your project 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A'; // your anon public key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+
 // --------------------
-// Start scanner using BarcodeDetector
+// Start scanner
 // --------------------
+let codeReader;
+
 async function startScanner() {
     const scannerContainer = document.getElementById('scanner-container');
-    scannerContainer.innerHTML = '';
+    scannerContainer.innerHTML = ''; // clear old video if any
 
-    // Create video element
     const video = document.createElement('video');
     video.setAttribute('autoplay', '');
-    video.setAttribute('playsinline', ''); // required for iOS
+    video.setAttribute('playsinline', '');
+    video.style.width = '100%';
     scannerContainer.appendChild(video);
 
-    // Check if BarcodeDetector is supported
-    if (!('BarcodeDetector' in window)) {
-        alert('Your browser does not support BarcodeDetector API.');
-        return;
-    }
+    codeReader = new BrowserMultiFormatReader();
 
-    const barcodeDetector = new BarcodeDetector({ formats: ['ean_13'] });
-
-    // Get camera stream
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment', width: { min: 640 }, height: { min: 480 } },
-            audio: false
+            video: { facingMode: 'environment' }
         });
         video.srcObject = stream;
+
+        codeReader.decodeFromVideoDevice(null, video, async (result, err) => {
+            if (result) {
+                const code = result.text;
+                document.getElementById('scanResult').innerText = "Barcode: " + code;
+                // stop scanner
+                codeReader.reset();
+                video.srcObject.getTracks().forEach(track => track.stop());
+                await lookupProductByBarcode(code);
+            }
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error(err);
+            }
+        });
     } catch (err) {
         console.error(err);
         alert('Cannot access camera. Make sure permissions are allowed and using HTTPS.');
-        return;
     }
-
-    // Scan continuously
-    const scanLoop = async () => {
-        try {
-            const barcodes = await barcodeDetector.detect(video);
-            if (barcodes.length > 0) {
-                const code = barcodes[0].rawValue;
-                document.getElementById('scanResult').innerText = "Barcode: " + code;
-                // Stop camera
-                video.srcObject.getTracks().forEach(track => track.stop());
-                // Lookup product in Supabase
-                await lookupProductByBarcode(code);
-                return; // stop scanning
-            }
-        } catch (err) {
-            console.error('Barcode detection failed', err);
-        }
-        requestAnimationFrame(scanLoop);
-    };
-
-    scanLoop();
 }
 
 // --------------------
 // Lookup product by barcode
 // --------------------
 async function lookupProductByBarcode(barcode) {
-    // Fetch main product
-    let { data: mainProduct, error } = await supabase
+    const { data: mainProduct, error } = await supabase
         .from('products')
         .select('*')
         .eq('barcode', barcode)
@@ -81,7 +68,6 @@ async function lookupProductByBarcode(barcode) {
 
     displayMainProduct(mainProduct);
 
-    // Fetch competitors
     const { data: competitors } = await supabase
         .from('competitors')
         .select('*')
@@ -150,4 +136,3 @@ function displayIngredients(mainProduct, competitors) {
 
     container.innerHTML = html;
 }
-
