@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Barcode Scanner Test</title>
+  <title>ZXing Barcode Scanner Test</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #scanner-container { width: 100%; max-width: 400px; height: 300px; border: 1px solid #ccc; position: relative; margin-bottom: 10px; }
@@ -12,7 +12,7 @@
   </style>
 </head>
 <body>
-  <h1>Barcode Scanner Test</h1>
+  <h1>ZXing Barcode Scanner Test</h1>
 
   <div id="scanner-container">
     <video id="video" autoplay playsinline></video>
@@ -22,7 +22,7 @@
   <p id="scanResult"></p>
   <button onclick="startScanner()">Start Scanner</button>
 
-  <!-- ZXing UMD JS -->
+  <!-- ZXing UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.10/lib/index.min.js"></script>
   <script src="app.js"></script>
 </body>
