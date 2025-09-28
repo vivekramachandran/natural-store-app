@@ -1,9 +1,10 @@
-
 let codeReader;
 
 function startScanner() {
     const video = document.getElementById('video');
     const overlay = document.getElementById('overlay');
+    overlay.width = video.clientWidth;
+    overlay.height = video.clientHeight;
     const ctx = overlay.getContext('2d');
 
     codeReader = new ZXing.BrowserMultiFormatReader();
@@ -30,7 +31,7 @@ function startScanner() {
                 }
 
                 const code = result.text;
-                document.getElementById('scanResult').innerText = "Barcode: " + code;
+                document.getElementById('scanResult').innerText = "Barcode detected: " + code;
 
                 // stop scanner
                 codeReader.reset();
@@ -45,5 +46,3 @@ function startScanner() {
         alert('Cannot access camera. Make sure permissions are allowed and using HTTPS.');
     });
 }
-
-
