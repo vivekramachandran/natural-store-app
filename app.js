@@ -7,7 +7,6 @@ const supabaseUrl = 'https://fdfdxszvenmbdkmxkuej.supabase.co'; // your project 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A'; // your anon public key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-
 // --------------------
 // Start scanner using BarcodeDetector
 // --------------------
