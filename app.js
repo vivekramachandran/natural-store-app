@@ -1,6 +1,4 @@
 
-import { BrowserMultiFormatReader, NotFoundException } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.10/esm/index.js';
-
 
 
 // ----------------------
@@ -15,15 +13,15 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 // --------------------
 let codeReader;
 
-async function startScanner() {
+function startScanner() {
     const video = document.getElementById('video');
     const overlay = document.getElementById('overlay');
     const ctx = overlay.getContext('2d');
 
-    codeReader = new BrowserMultiFormatReader();
+    codeReader = new ZXing.BrowserMultiFormatReader();
 
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
         video.srcObject = stream;
 
         codeReader.decodeFromVideoDevice(null, video, async (result, err) => {
@@ -52,14 +50,15 @@ async function startScanner() {
 
                 // fetch product info
                 await lookupProductByBarcode(code);
-            } else if (err && !(err instanceof NotFoundException)) {
+            } else if (err && !(err.name === 'NotFoundException')) {
                 console.error(err);
             }
         });
-    } catch (err) {
+    })
+    .catch(err => {
         console.error(err);
         alert('Cannot access camera. Make sure permissions are allowed and using HTTPS.');
-    }
+    });
 }
 
 // --------------------
@@ -147,3 +146,4 @@ function displayIngredients(mainProduct, competitors) {
 
     container.innerHTML = html;
 }
+
