@@ -1,28 +1,28 @@
 function startScanner() {
-    Quagga.init({
-        inputStream: {
-            name: "Live",
-            type: "LiveStream",
-            target: document.querySelector('#scanner-container'),
-            constraints: {
-                facingMode: "environment", // back camera
-                width: { min: 640 },
-                height: { min: 480 }
-            },
+
+   Quagga.init({
+    inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: document.querySelector('#scanner-container'),
+        constraints: {
+            facingMode: "environment",
+            width: { min: 640 },
+            height: { min: 480 }
         },
-        decoder: {
-            readers: ["ean_reader"] // EAN-13 barcode
-        },
-        locate: true
-    }, function(err) {
-        if (err) {
-            console.error(err);
-            alert("Camera initialization failed. Check permissions and HTTPS.");
-            return;
-        }
-        Quagga.start();
-        document.getElementById('scanResult').innerText = "Scanning... point camera at a barcode.";
-    });
+    },
+    decoder: {
+        readers: ["ean_reader"],
+        multiple: false
+    },
+    locate: true,
+    locator: {
+        patchSize: "large",
+        halfSample: false
+    }
+}, function(err) { ... });
+ 
+
 
     Quagga.onDetected(function(result) {
         const code = result.codeResult.code;
