@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Camera Test</title>
+</head>
+<body>
+<h1>Camera Test</h1>
+<video id="video" autoplay playsinline style="width:100%;height:300px; border:1px solid #ccc;"></video>
+
+<script>
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+.then(stream => {
+    document.getElementById('video').srcObject = stream;
+})
+.catch(err => alert("Camera access failed: " + err));
+</script>
+</body>
+</html>
