@@ -33,7 +33,7 @@ function startScanner() {
                 const code = result.text;
                 document.getElementById('scanResult').innerText = "Barcode detected: " + code;
 
-                // stop scanner
+                // Stop scanner
                 codeReader.reset();
                 video.srcObject.getTracks().forEach(track => track.stop());
             } else if (err && !(err.name === 'NotFoundException')) {
