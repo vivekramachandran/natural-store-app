@@ -23,7 +23,7 @@ function startScanner() {
       },
     },
     decoder: {
-      readers: ["ean_reader", "upc_reader", "code_128_reader"]
+      readers: ["ean_reader"] // EAN-13 barcodes
     },
     locate: true
   }, function(err) {
@@ -41,6 +41,9 @@ function startScanner() {
     Quagga.stop();
     await lookupProductByBarcode(code);
   });
+  Quagga.onProcessed(function(result) {
+    console.log(result.codeResult); // should show {code: "1234567890123", format: "ean_13"}
+});
 }
 
 // --------------------
