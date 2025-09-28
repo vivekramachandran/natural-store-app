@@ -7,124 +7,128 @@ const supabaseUrl = 'https://fdfdxszvenmbdkmxkuej.supabase.co'; // your project 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A'; // your anon public key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// ----------------------
-// 2. Start camera scanner
-// ----------------------
+// --------------------
+// Start scanner
+// --------------------
 function startScanner() {
   Quagga.init({
-    inputStream : {
-      name : "Live",
-      type : "LiveStream",
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
       target: document.querySelector('#scanner-container'),
       constraints: {
-        facingMode: "environment"
+        facingMode: "environment", // back camera
+        width: { min: 320 },
+        height: { min: 240 }
       },
     },
-    decoder : {
-      readers : ["ean_reader","upc_reader","upc_e_reader"]
-    }
+    decoder: {
+      readers: ["ean_reader", "upc_reader", "code_128_reader"]
+    },
+    locate: true
   }, function(err) {
-      if (err) { console.error(err); return; }
-      console.log("Quagga initialized");
-      Quagga.start();
+    if (err) {
+      console.error(err);
+      alert("Camera not accessible. Make sure you allow camera permissions and are using HTTPS.");
+      return;
+    }
+    Quagga.start();
   });
 
-  Quagga.onDetected(function(result) {
-      const code = result.codeResult.code;
-      document.getElementById('scanResult').innerText = `Scanned Barcode: ${code}`;
-      Quagga.stop();
-      lookupProductByBarcode(code);
+  Quagga.onDetected(async function(result) {
+    const code = result.codeResult.code;
+    document.getElementById('scanResult').innerText = "Barcode: " + code;
+    Quagga.stop();
+    await lookupProductByBarcode(code);
   });
 }
 
-// ----------------------
-// 3. Fetch product + competitors + ingredients
-// ----------------------
+// --------------------
+// Lookup product by barcode
+// --------------------
 async function lookupProductByBarcode(barcode) {
-  if (!barcode) return alert('No barcode detected')
-
-  // 3a: Main product
-  let { data: mainProduct, error: mainError } = await supabase
+  // Fetch main product
+  let { data: mainProduct, error } = await supabase
     .from('products')
     .select('*')
     .eq('barcode', barcode)
-    .single()
-  if (mainError) return alert('Product not found')
-  displayMainProduct(mainProduct)
+    .single();
 
-  // 3b: Competitors
-  let { data: competitorRow } = await supabase
+  if (error || !mainProduct) {
+    alert("Product not found in database.");
+    return;
+  }
+
+  displayMainProduct(mainProduct);
+
+  // Fetch competitors
+  const { data: competitors } = await supabase
     .from('competitors')
     .select('*')
-    .eq('product_id', mainProduct.product_id)
-    .single()
+    .eq('product_id', mainProduct.product_id);
 
-  const competitorIds = [competitorRow.competitor_1, competitorRow.competitor_2, competitorRow.competitor_3]
-  
-  let { data: competitorProducts } = await supabase
-    .from('products')
-    .select('*')
-    .in('product_id', competitorIds)
-
-  displayComparisonTable(mainProduct, competitorProducts)
-
-  // 3c: Ingredients
-  const allIds = [mainProduct.product_id, ...competitorIds]
-  let { data: ingredients } = await supabase
-    .from('ingredients')
-    .select('*')
-    .in('product_id', allIds)
-
-  displayIngredientsTable(ingredients, [mainProduct, ...competitorProducts])
+  displayComparisonTable(mainProduct, competitors || []);
+  displayIngredients(mainProduct, competitors || []);
 }
 
-// ----------------------
-// 4. Display main product health
-// ----------------------
+// --------------------
+// Display main product health
+// --------------------
 function displayMainProduct(product) {
-  const container = document.getElementById('mainProduct')
+  const container = document.getElementById('mainProduct');
   container.innerHTML = `
-    <h2>Main Product: ${product.name}</h2>
-    <p>Health Score: <span class="${product.health_score >= 80 ? 'healthy' : product.health_score >= 50 ? 'warning' : 'danger'}">
-      ${product.health_score}/100</span></p>
+    <h2>Main Product: ${product.clean_name}</h2>
+    <p><strong>Health Score:</strong> ${product.health_score} / 100</p>
     <p>${product.health_analysis}</p>
-  `
+    <p><strong>Price:</strong> ₹${product.price_mrp}</p>
+  `;
 }
 
-// ----------------------
-// 5. Display comparison table
-// ----------------------
-function displayComparisonTable(main, competitors) {
-  const container = document.getElementById('comparisonTable')
-  let html = `<h2>Comparison Table</h2><table>
+// --------------------
+// Display comparison table
+// --------------------
+function displayComparisonTable(mainProduct, competitors) {
+  const container = document.getElementById('comparisonTable');
+
+  let rows = `
     <tr>
       <th>Feature</th>
-      <th>${main.name}</th>
-      ${competitors.map(c => `<th>${c.name}</th>`).join('')}
+      <th>${mainProduct.clean_name}</th>
+      ${competitors.map(c => `<th>${c.clean_name}</th>`).join('')}
+      <th>Health Insight</th>
     </tr>
-    <tr><td>Calories</td><td>${main.calories}</td>${competitors.map(c=>`<td>${c.calories}</td>`).join('')}</tr>
-    <tr><td>Sugar</td><td>${main.sugar}</td>${competitors.map(c=>`<td>${c.sugar}</td>`).join('')}</tr>
-    <tr><td>Fat</td><td>${main.fat}</td>${competitors.map(c=>`<td>${c.fat}</td>`).join('')}</tr>
-    <tr><td>Health Score</td><td>${main.health_score}</td>${competitors.map(c=>`<td>${c.health_score}</td>`).join('')}</tr>
-  </table>`
-  container.innerHTML = html
+  `;
+
+  // Example: calories, sugar, fat, artificial additives
+  const features = ['calories', 'sweetener', 'fat_source', 'protein', 'fiber', 'artificial_colors', 'preservatives', 'additive_load', 'overall_health_score'];
+
+  features.forEach(f => {
+    rows += `<tr>
+      <td>${f.replace(/_/g, ' ')}</td>
+      <td>${mainProduct[f] || '-'}</td>
+      ${competitors.map(c => `<td>${c[f] || '-'}</td>`).join('')}
+      <td></td>
+    </tr>`;
+  });
+
+  container.innerHTML = `<h2>Comparison Table</h2><table>${rows}</table>`;
 }
 
-// ----------------------
-// 6. Display ingredients with shock & awe
-// ----------------------
-function displayIngredientsTable(allIngredients, products) {
-  const container = document.getElementById('ingredientsTable')
-  let html = '<h2>Ingredients / Additives</h2>'
+// --------------------
+// Display detailed ingredients
+// --------------------
+function displayIngredients(mainProduct, competitors) {
+  const container = document.getElementById('ingredientsTable');
+  let html = `<h2>Ingredients & Additives</h2>`;
 
-  products.forEach(p => {
-    html += `<h3>${p.name}</h3><ul>`
-    allIngredients.filter(i => i.product_id === p.product_id).forEach(i => {
-      let color = (i.type && (i.type.toLowerCase().includes('artificial') || i.type.toLowerCase().includes('preservative') || i.type.toLowerCase().includes('chemical'))) ? 'red' : 'green'
-      html += `<li style="color:${color}">${i.name} (${i.type || 'Natural'}): ${i.impact}</li>`
-    })
-    html += '</ul>'
-  })
+  html += `<h3>${mainProduct.clean_name}</h3>`;
+  html += `<ul>${(mainProduct.ingredients || '').split(',').map(i => `<li>${i}</li>`).join('')}</ul>`;
 
-  container.innerHTML = html
+  competitors.forEach(c => {
+    html += `<h3>${c.clean_name}</h3>`;
+    html += `<ul>${(c.ingredients || '').split(',').map(i => `<li>${i}</li>`).join('')}</ul>`;
+  });
+
+  container.innerHTML = html;
 }
+
