@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modern Barcode Scanner</title>
+<title>Simple Barcode Scanner</title>
 <style>
   body { 
     font-family: Arial, sans-serif; 
@@ -11,20 +11,24 @@
     display: flex; 
     flex-direction: column; 
     align-items: center;
-    background: #f0f0f0;
+    background: #f5f5f5;
     padding: 20px;
   }
-  h1 { color: #333; margin-bottom: 20px; }
+  
+  h1 { 
+    color: #333; 
+    margin-bottom: 20px; 
+  }
   
   #scanner-container {
     width: 90vw;
-    max-width: 500px;
-    height: 400px;
+    max-width: 400px;
+    height: 300px;
     position: relative;
-    border: 2px solid #333;
+    border: 3px solid #007bff;
     margin: 20px 0;
     background: #000;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
   }
 
@@ -34,255 +38,255 @@
     object-fit: cover;
   }
   
-  #guide-box {
+  #canvas {
+    display: none;
+  }
+  
+  #guide-overlay {
     position: absolute;
-    top: 50%; 
-    left: 50%;
-    width: 80%; 
-    height: 20%;
-    border: 3px dashed #ff0000;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     pointer-events: none;
     z-index: 10;
-    background: rgba(255, 0, 0, 0.1);
-    border-radius: 4px;
+  }
+  
+  #guide-box {
+    position: absolute;
+    top: 40%; 
+    left: 10%;
+    right: 10%;
+    height: 20%;
+    border: 2px dashed #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+    border-radius: 8px;
   }
   
   #guide-text {
     position: absolute;
-    top: -35px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    color: #ff0000;
-    font-size: 14px;
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
     font-weight: bold;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
   }
   
   #result {
     background: white;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 10px;
     margin: 20px 0;
-    min-height: 50px;
+    min-height: 40px;
     width: 90vw;
-    max-width: 500px;
+    max-width: 400px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
   }
   
   .buttons {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 20px;
     flex-wrap: wrap;
     justify-content: center;
   }
   
   button { 
-    padding: 12px 24px; 
+    padding: 12px 20px; 
     cursor: pointer; 
     font-size: 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #007bff;
     color: white;
-    transition: all 0.2s;
-    font-weight: 500;
+    transition: all 0.3s;
+    font-weight: 600;
+    min-width: 120px;
   }
   
   button:hover { 
     background: #0056b3; 
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
   }
   
   button:disabled { 
-    background: #ccc; 
+    background: #6c757d; 
     cursor: not-allowed; 
     transform: none;
+    box-shadow: none;
   }
   
-  #stopBtn { background: #dc3545; }
-  #stopBtn:hover { background: #c82333; }
+  #stopBtn { 
+    background: #dc3545; 
+  }
+  #stopBtn:hover { 
+    background: #c82333; 
+    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+  }
   
-  .error { color: #dc3545; }
-  .success { color: #28a745; }
-  .info { color: #007bff; }
+  .error { 
+    color: #dc3545; 
+    font-weight: bold;
+  }
+  .success { 
+    color: #28a745; 
+    font-weight: bold;
+  }
+  .info { 
+    color: #007bff; 
+    font-weight: bold;
+  }
   
-  .library-info {
+  .status {
     background: #e9ecef;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 15px;
+    border-radius: 8px;
     margin: 10px 0;
-    font-size: 12px;
-    color: #6c757d;
-    max-width: 500px;
+    font-size: 14px;
+    max-width: 400px;
     text-align: center;
+  }
+  
+  .detected-code {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border-left: 4px solid #28a745;
+    font-size: 18px;
+    font-weight: bold;
+    word-break: break-all;
   }
   
   @media (max-width: 600px) {
     #scanner-container {
       width: 95vw;
-      height: 300px;
+      height: 250px;
     }
     #result {
       width: 95vw;
+    }
+    button {
+      min-width: 100px;
+      font-size: 14px;
     }
   }
 </style>
 </head>
 <body>
-<h1>🔍 Modern Barcode Scanner</h1>
 
-<div class="library-info">
-  Using ZXing-js library for better barcode recognition
+<h1>📱 Simple Barcode Scanner</h1>
+
+<div class="status">
+  Using jsQR library - Works with QR codes and some barcodes
 </div>
 
 <div id="scanner-container">
-  <video id="video" playsinline></video>
-  <div id="guide-box">
-    <div id="guide-text">Align barcode here</div>
+  <video id="video" playsinline autoplay muted></video>
+  <canvas id="canvas"></canvas>
+  <div id="guide-overlay">
+    <div id="guide-text">Align barcode/QR code here</div>
+    <div id="guide-box"></div>
   </div>
 </div>
 
 <div id="result">
-  Click "Start Scanner" to begin scanning barcodes
+  Click "Start Scanner" to begin
 </div>
 
 <div class="buttons">
   <button id="startBtn" onclick="startScanner()">Start Scanner</button>
   <button id="stopBtn" onclick="stopScanner()" disabled>Stop Scanner</button>
-  <button onclick="switchCamera()" id="switchBtn" disabled>Switch Camera</button>
 </div>
 
-<div class="library-info">
-  Supports: UPC-A, UPC-E, EAN-13, EAN-8, Code 39, Code 93, Code 128, ITF, Codabar, QR Code, Data Matrix
+<div class="status">
+  📝 Note: This works best with QR codes. For traditional barcodes, try good lighting and steady hands!
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-library/0.20.0/umd/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
 <script>
-let codeReader = null;
+let video = null;
+let canvas = null;
+let context = null;
 let isScanning = false;
-let currentStream = null;
-let cameras = [];
-let currentCameraIndex = 0;
+let animationId = null;
 
-// Initialize ZXing code reader
-function initializeCodeReader() {
-    codeReader = new ZXing.BrowserMultiFormatReader();
-}
-
-// Get available cameras
-async function getCameras() {
-    try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        cameras = devices.filter(device => device.kind === 'videoinput');
-        console.log('Available cameras:', cameras.length);
-        
-        if (cameras.length > 1) {
-            document.getElementById('switchBtn').style.display = 'inline-block';
-        }
-        
-        return cameras;
-    } catch (err) {
-        console.error('Error getting cameras:', err);
-        return [];
-    }
-}
-
-// Check camera permissions
-async function checkCameraPermissions() {
-    try {
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-            throw new Error('HTTPS required for camera access');
-        }
-        
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop());
-        return true;
-    } catch (err) {
-        console.error('Permission check failed:', err);
-        return false;
-    }
+// Initialize elements
+function initElements() {
+    video = document.getElementById('video');
+    canvas = document.getElementById('canvas');
+    context = canvas.getContext('2d');
 }
 
 // Start scanner
 async function startScanner() {
     if (isScanning) return;
     
-    document.getElementById('result').innerHTML = '<span class="info">🔍 Checking camera permissions...</span>';
+    initElements();
+    
+    document.getElementById('result').innerHTML = '<span class="info">🔍 Requesting camera access...</span>';
     document.getElementById('startBtn').disabled = true;
     
-    // Check permissions
-    const hasPermission = await checkCameraPermissions();
-    if (!hasPermission) {
-        document.getElementById('result').innerHTML = `
-            <span class="error">❌ Camera access denied<br><br>
-            <strong>Please:</strong><br>
-            • Make sure you're using HTTPS<br>
-            • Allow camera access when prompted<br>
-            • Check browser camera settings</span>
-        `;
-        document.getElementById('startBtn').disabled = false;
-        return;
-    }
-    
-    // Initialize reader if needed
-    if (!codeReader) {
-        initializeCodeReader();
-    }
-    
     try {
-        document.getElementById('result').innerHTML = '<span class="info">📹 Starting camera...</span>';
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: 'environment', // Try back camera first
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        });
         
-        // Get available cameras
-        await getCameras();
+        video.srcObject = stream;
         
-        // Use back camera if available, otherwise use default
-        let constraints = { video: { facingMode: 'environment' } };
-        
-        if (cameras.length > 0) {
-            // Try to use the selected camera
-            const selectedCamera = cameras[currentCameraIndex];
-            constraints = { 
-                video: { 
-                    deviceId: selectedCamera.deviceId,
-                    width: { ideal: 1280, max: 1920 },
-                    height: { ideal: 720, max: 1080 }
-                } 
-            };
-        }
-        
-        // Start scanning
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        document.getElementById('video').srcObject = currentStream;
-        
-        isScanning = true;
-        document.getElementById('startBtn').disabled = true;
-        document.getElementById('stopBtn').disabled = false;
-        document.getElementById('switchBtn').disabled = false;
-        
-        document.getElementById('result').innerHTML = '<span class="info">📱 Scanning... align barcode in the red box</span>';
-        
-        // Start the continuous scan
-        scanContinuously();
+        // Wait for video to load
+        video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            isScanning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            document.getElementById('result').innerHTML = '<span class="info">📱 Scanning... point camera at barcode or QR code</span>';
+            
+            // Start scanning loop
+            scanFrame();
+        };
         
     } catch (err) {
-        console.error('Error starting scanner:', err);
-        let errorMsg = '<span class="error">❌ Failed to start camera<br><br>';
+        console.error('Camera error:', err);
+        
+        let errorMsg = '<span class="error">❌ Camera access failed<br><br>';
         
         if (err.name === 'NotAllowedError') {
-            errorMsg += 'Camera permission denied! Please allow camera access and try again.';
+            errorMsg += '<strong>Permission denied!</strong><br>' +
+                       '• Click the camera icon in address bar<br>' +
+                       '• Allow camera access<br>' +
+                       '• Refresh page and try again';
         } else if (err.name === 'NotFoundError') {
-            errorMsg += 'No camera found on this device.';
+            errorMsg += '<strong>No camera found!</strong><br>' +
+                       'Make sure your device has a working camera.';
         } else if (err.name === 'NotReadableError') {
-            errorMsg += 'Camera is busy. Close other camera apps and try again.';
+            errorMsg += '<strong>Camera busy!</strong><br>' +
+                       'Close other apps using the camera.';
+        } else if (err.name === 'OverconstrainedError') {
+            errorMsg += '<strong>Camera constraints not supported!</strong><br>' +
+                       'Trying with different settings...';
+            
+            // Try again with basic constraints
+            setTimeout(startScannerBasic, 1000);
+            return;
         } else {
-            errorMsg += `Error: ${err.message}`;
+            errorMsg += '<strong>Error:</strong> ' + err.message;
         }
         
         errorMsg += '</span>';
@@ -291,127 +295,112 @@ async function startScanner() {
     }
 }
 
-// Continuous scanning function
-function scanContinuously() {
-    if (!isScanning || !currentStream) return;
-    
-    const video = document.getElementById('video');
-    
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        try {
-            // Create canvas to capture video frame
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
+// Fallback with basic camera constraints
+async function startScannerBasic() {
+    try {
+        document.getElementById('result').innerHTML = '<span class="info">🔍 Trying basic camera settings...</span>';
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true // Just ask for any video
+        });
+        
+        video.srcObject = stream;
+        
+        video.onloadedmetadata = () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Draw current video frame
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            isScanning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
             
-            // Get image data
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            document.getElementById('result').innerHTML = '<span class="info">📱 Scanning with front camera... point at barcode/QR code</span>';
             
-            // Try to decode barcode
-            codeReader.decodeFromImageData(imageData)
-                .then(result => {
-                    if (result && isScanning) {
-                        onBarcodeDetected(result);
-                    }
-                })
-                .catch(err => {
-                    // No barcode found, continue scanning
-                    if (isScanning) {
-                        setTimeout(scanContinuously, 100);
-                    }
-                });
-                
-        } catch (err) {
-            console.error('Scanning error:', err);
-            if (isScanning) {
-                setTimeout(scanContinuously, 100);
-            }
-        }
-    } else {
-        // Wait for video to be ready
-        if (isScanning) {
-            setTimeout(scanContinuously, 100);
-        }
+            scanFrame();
+        };
+        
+    } catch (err) {
+        console.error('Basic camera failed:', err);
+        document.getElementById('result').innerHTML = '<span class="error">❌ Unable to access any camera. Check browser permissions.</span>';
+        document.getElementById('startBtn').disabled = false;
     }
 }
 
-// Handle barcode detection
-function onBarcodeDetected(result) {
-    console.log('Barcode detected:', result);
+// Main scanning loop
+function scanFrame() {
+    if (!isScanning) return;
     
-    // Play success sound
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        // Draw video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Get image data
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        
+        // Try to detect QR code
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+        });
+        
+        if (code) {
+            onCodeDetected(code);
+            return; // Stop scanning after detection
+        }
+    }
+    
+    // Continue scanning
+    animationId = requestAnimationFrame(scanFrame);
+}
+
+// Handle code detection
+function onCodeDetected(code) {
+    console.log('Code detected:', code);
+    
+    // Play success beep
     playBeep();
     
-    // Display result
+    // Show result
     document.getElementById('result').innerHTML = `
-        <span class="success">✅ Barcode Detected!<br>
-        <strong>Code:</strong> ${result.text}<br>
-        <strong>Format:</strong> ${result.format}</span>
+        <span class="success">✅ Code Detected!</span>
+        <div class="detected-code">${code.data}</div>
+        <small>Location: (${Math.round(code.location.topLeftCorner.x)}, ${Math.round(code.location.topLeftCorner.y)})</small>
     `;
     
-    // Auto-stop after detection
+    // Auto-stop after 3 seconds
     setTimeout(() => {
         stopScanner();
-    }, 2000);
+    }, 3000);
 }
 
 // Stop scanner
 function stopScanner() {
     isScanning = false;
     
-    if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-        currentStream = null;
+    // Stop animation loop
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
     }
     
-    document.getElementById('video').srcObject = null;
+    // Stop video stream
+    if (video && video.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        video.srcObject = null;
+    }
+    
+    // Reset UI
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
-    document.getElementById('switchBtn').disabled = true;
     
-    document.getElementById('result').innerHTML = 'Scanner stopped. Click "Start Scanner" to scan again.';
+    if (document.getElementById('result').innerHTML.indexOf('Code Detected') === -1) {
+        document.getElementById('result').innerHTML = 'Scanner stopped. Click "Start Scanner" to try again.';
+    }
     
     console.log('Scanner stopped');
 }
 
-// Switch between cameras
-async function switchCamera() {
-    if (!isScanning || cameras.length <= 1) return;
-    
-    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-    console.log('Switching to camera:', cameras[currentCameraIndex].label);
-    
-    // Stop current stream
-    if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-    }
-    
-    // Start with new camera
-    try {
-        const constraints = { 
-            video: { 
-                deviceId: cameras[currentCameraIndex].deviceId,
-                width: { ideal: 1280, max: 1920 },
-                height: { ideal: 720, max: 1080 }
-            } 
-        };
-        
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        document.getElementById('video').srcObject = currentStream;
-        
-        document.getElementById('result').innerHTML = '<span class="info">📱 Camera switched! Scanning...</span>';
-        
-    } catch (err) {
-        console.error('Error switching camera:', err);
-        document.getElementById('result').innerHTML = '<span class="error">❌ Failed to switch camera</span>';
-    }
-}
-
-// Play beep sound
+// Play success beep
 function playBeep() {
     try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -421,28 +410,50 @@ function playBeep() {
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.value = 800;
-        oscillator.type = 'square';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        oscillator.frequency.value = 1000; // Higher pitch
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         
         oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
+        oscillator.stop(audioContext.currentTime + 0.3);
     } catch (e) {
-        console.log('Could not play beep sound');
+        console.log('Beep not available');
     }
 }
 
-// Clean up on page unload
+// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     if (isScanning) {
         stopScanner();
     }
 });
 
-// Initialize when page loads
-window.addEventListener('load', () => {
-    initializeCodeReader();
+// Test camera availability on load
+window.addEventListener('load', async () => {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        
+        if (cameras.length === 0) {
+            document.getElementById('result').innerHTML = '<span class="error">❌ No cameras detected on this device</span>';
+            document.getElementById('startBtn').disabled = true;
+        } else {
+            console.log(`Found ${cameras.length} camera(s)`);
+        }
+    } catch (err) {
+        console.log('Could not enumerate devices:', err);
+    }
+});
+
+// Handle visibility change (pause when tab not active)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && isScanning) {
+        console.log('Tab hidden, pausing scanner');
+    } else if (!document.hidden && isScanning) {
+        console.log('Tab visible, resuming scanner');
+    }
 });
 </script>
+
 </body>
 </html>
