@@ -6,8 +6,8 @@ function startScanner() {
             target: document.querySelector('#scanner-container'),
             constraints: {
                 facingMode: "environment", // back camera
-                width: 640,
-                height: 480
+                width: { min: 640 },
+                height: { min: 480 }
             },
         },
         decoder: {
@@ -31,7 +31,6 @@ function startScanner() {
     });
 
     Quagga.onProcessed(function(result) {
-        // Optional: overlay drawing
         const drawingCtx = Quagga.canvas.ctx.overlay;
         const drawingCanvas = Quagga.canvas.dom.overlay;
         if (result) {
