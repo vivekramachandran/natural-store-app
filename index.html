@@ -2,31 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Natural Product Health Checker</title>
+  <title>Barcode Scanner Test - QuaggaJS</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    h1, h2, h3 { color: #333; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    #reader { width: 100%; max-width: 400px; margin-bottom: 10px; border: 1px solid #ccc; }
+    #scanner-container { width: 100%; max-width: 400px; height: 300px; border: 1px solid #ccc; margin-bottom: 10px; }
     button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
+    #scanResult { font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Scan Product Barcode</h1>
-
-  <div id="reader"></div>
+  <h1>QuaggaJS Barcode Scanner Test</h1>
+  <div id="scanner-container"></div>
   <p id="scanResult">No barcode detected yet.</p>
   <button onclick="startScanner()">Start Scanner</button>
 
-  <div id="mainProduct"></div>
-  <div id="comparisonTable"></div>
-  <div id="ingredientsTable"></div>
-
-  <!-- Libraries -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
