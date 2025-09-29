@@ -87,7 +87,7 @@ async function checkBarcodeSupport() {
 async function initBarcodeDetector() {
   try {
     barcodeDetector = new BarcodeDetector({
-      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'qr_code']
+      formats: ['ean_13']
     });
     return true;
   } catch (err) { return false; }
