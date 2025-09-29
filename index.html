@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Native Browser Barcode Scanner</title>
+<title>Smart Barcode Scanner</title>
 <style>
   body { 
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -21,556 +21,199 @@
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     padding: 30px;
-    max-width: 500px;
-    width: 90vw;
+    max-width: 700px;
+    width: 95vw;
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     backdrop-filter: blur(10px);
     color: #333;
   }
   
-  h1 { 
-    color: #333; 
-    margin-bottom: 20px; 
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-  }
-  
-  #scanner-container {
-    width: 100%;
-    height: 300px;
-    position: relative;
-    border: 3px solid #4CAF50;
-    margin: 20px 0;
-    background: #000;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  }
-
-  #video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 12px;
-  }
-  
-  #canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-  
-  #guide-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 10;
-  }
-  
-  #guide-box {
-    position: absolute;
-    top: 35%; 
-    left: 10%;
-    right: 10%;
-    height: 30%;
-    border: 3px dashed #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
-    border-radius: 12px;
-    animation: pulse 2s infinite;
-  }
-  
-  @keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-  }
-  
-  #guide-text {
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #4CAF50;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  
-  #result {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    padding: 25px;
-    border-radius: 15px;
-    margin: 25px 0;
-    min-height: 60px;
-    text-align: center;
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-  }
-  
-  .buttons {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  button { 
-    padding: 15px 30px; 
-    cursor: pointer; 
-    font-size: 16px;
-    border: none;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    min-width: 150px;
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  button:hover { 
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-  }
-  
-  button:disabled { 
-    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-    cursor: not-allowed; 
-    transform: none;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-  
-  #stopBtn { 
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
-  }
-  #stopBtn:hover { 
-    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.6);
-  }
-  
-  .error { 
-    color: #e74c3c; 
-    font-weight: 600;
-  }
-  .success { 
-    color: #27ae60; 
-    font-weight: 600;
-  }
-  .info { 
-    color: #3498db; 
-    font-weight: 600;
-  }
-  
-  .status {
-    background: rgba(52, 152, 219, 0.1);
-    border: 1px solid rgba(52, 152, 219, 0.3);
-    color: #2980b9;
-    padding: 15px 20px;
-    border-radius: 12px;
-    margin: 15px 0;
-    font-size: 14px;
-    text-align: center;
-    font-weight: 500;
-  }
-  
-  .detected-code {
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    color: white;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 12px;
-    font-size: 20px;
-    font-weight: 700;
-    word-break: break-all;
-    box-shadow: 0 10px 30px rgba(46, 204, 113, 0.3);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  }
-  
-  .format-info {
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    color: #f39c12;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-top: 15px;
-    font-weight: 500;
-  }
-  
-  @media (max-width: 600px) {
-    .container {
-      width: 95vw;
-      padding: 20px;
-    }
-    #scanner-container {
-      height: 250px;
-    }
-    button {
-      min-width: 130px;
-      font-size: 14px;
-      padding: 12px 24px;
-    }
-    h1 {
-      font-size: 24px;
-    }
-  }
-  
-  .compatibility-warning {
-    background: rgba(255, 152, 0, 0.1);
-    border: 1px solid rgba(255, 152, 0, 0.3);
-    color: #e67e22;
-    padding: 15px;
-    border-radius: 12px;
-    margin: 15px 0;
-    font-size: 13px;
-    text-align: center;
-  }
-  
-  .loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255,255,255,0.3);
-    border-top: 3px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 10px;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+  h1 { text-align: center; margin-bottom: 20px; }
+  #scanner-container { width: 100%; height: 300px; position: relative; margin: 20px 0; border: 3px solid #4CAF50; border-radius: 12px; overflow: hidden; }
+  #video { width: 100%; height: 100%; object-fit: cover; }
+  #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  #guide-box { position: absolute; top: 35%; left: 10%; right: 10%; height: 30%; border: 3px dashed #4CAF50; border-radius: 12px; }
+  #result { margin-top: 20px; padding: 20px; border-radius: 12px; background: #f7f9fc; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 14px; }
+  th { background: #eee; }
+  .detected-code { font-family: monospace; font-weight: bold; padding: 10px; background: #27ae60; color: white; border-radius: 8px; margin: 10px 0; display: inline-block; }
+  .error { color: #e74c3c; font-weight: bold; }
+  .success { color: #27ae60; font-weight: bold; }
 </style>
 </head>
 <body>
-
 <div class="container">
-  <h1>🔍 Native Barcode Scanner</h1>
-
-  <div class="status">
-    🚀 Using Browser's Built-in Barcode Detection API
-  </div>
+  <h1>📦 Smart Barcode Scanner</h1>
 
   <div id="scanner-container">
     <video id="video" playsinline autoplay muted></video>
     <canvas id="canvas"></canvas>
-    <div id="guide-overlay">
-      <div id="guide-text">🎯 Align barcode here</div>
-      <div id="guide-box"></div>
-    </div>
+    <div id="guide-box"></div>
   </div>
 
-  <div id="result">
-    Ready to scan! This uses the same technology as Google Lens.
-  </div>
+  <div id="result">Ready to scan...</div>
 
-  <div class="buttons">
+  <div style="text-align:center; margin-top:20px;">
     <button id="startBtn" onclick="startScanner()">🚀 Start Scanner</button>
-    <button id="stopBtn" onclick="stopScanner()" disabled>⏹️ Stop Scanner</button>
-  </div>
-
-  <div class="compatibility-warning" id="compatibilityWarning" style="display: none;">
-    ⚠️ Your browser doesn't support the native Barcode Detection API. This works best in Chrome/Edge on Android.
-  </div>
-
-  <div class="status">
-    📋 Supports all major barcode formats natively through your browser
+    <button id="stopBtn" onclick="stopScanner()" disabled>⏹ Stop Scanner</button>
   </div>
 </div>
 
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-let video = null;
-let canvas = null;
-let context = null;
-let isScanning = false;
-let animationId = null;
-let barcodeDetector = null;
+let video = null, canvas = null, context = null;
+let isScanning = false, animationId = null, barcodeDetector = null;
 
-// Check if BarcodeDetector is supported
+// 🔹 Setup Supabase
+const supabaseUrl = "https://fdfdxszvenmbdkmxkuej.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+// 🔹 Check BarcodeDetector support
 async function checkBarcodeSupport() {
-    if ('BarcodeDetector' in window) {
-        try {
-            // Get supported formats
-            const supportedFormats = await BarcodeDetector.getSupportedFormats();
-            console.log('Supported barcode formats:', supportedFormats);
-            return true;
-        } catch (err) {
-            console.error('BarcodeDetector error:', err);
-            return false;
-        }
-    }
-    return false;
+  if ('BarcodeDetector' in window) {
+    try {
+      await BarcodeDetector.getSupportedFormats();
+      return true;
+    } catch (err) { return false; }
+  }
+  return false;
 }
 
-// Initialize barcode detector
+// 🔹 Init detector
 async function initBarcodeDetector() {
-    try {
-        barcodeDetector = new BarcodeDetector({
-            formats: [
-                'aztec', 'code_128', 'code_39', 'code_93',
-                'codabar', 'data_matrix', 'ean_13', 'ean_8',
-                'itf', 'pdf417', 'qr_code', 'upc_a', 'upc_e'
-            ]
-        });
-        return true;
-    } catch (err) {
-        console.error('Failed to create BarcodeDetector:', err);
-        return false;
-    }
+  try {
+    barcodeDetector = new BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'qr_code']
+    });
+    return true;
+  } catch (err) { return false; }
 }
 
-// Initialize elements
-function initElements() {
-    video = document.getElementById('video');
-    canvas = document.getElementById('canvas');
-    context = canvas.getContext('2d');
-}
-
-// Start scanner
+// 🔹 Start scanner
 async function startScanner() {
-    if (isScanning) return;
-    
-    initElements();
-    
-    // Check browser support first
-    const hasSupport = await checkBarcodeSupport();
-    if (!hasSupport) {
-        document.getElementById('compatibilityWarning').style.display = 'block';
-        document.getElementById('result').innerHTML = `
-            <span class="error">❌ Native Barcode Detection not supported</span><br><br>
-            <strong>Try:</strong><br>
-            • Chrome or Edge browser on Android<br>
-            • Update your browser to the latest version<br>
-            • Enable "Experimental Web Platform features" in chrome://flags
-        `;
-        return;
-    }
-    
-    // Initialize detector
-    const detectorReady = await initBarcodeDetector();
-    if (!detectorReady) {
-        document.getElementById('result').innerHTML = '<span class="error">❌ Failed to initialize barcode detector</span>';
-        return;
-    }
-    
-    document.getElementById('result').innerHTML = '<span class="info"><span class="loading"></span>Starting camera...</span>';
-    document.getElementById('startBtn').disabled = true;
-    
+  if (isScanning) return;
+  video = document.getElementById('video');
+  canvas = document.getElementById('canvas');
+  context = canvas.getContext('2d');
+
+  const hasSupport = await checkBarcodeSupport();
+  if (!hasSupport) {
+    document.getElementById('result').innerHTML = '<span class="error">❌ Barcode API not supported</span>';
+    return;
+  }
+  await initBarcodeDetector();
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = stream;
+
+    video.onloadedmetadata = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      isScanning = true;
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('stopBtn').disabled = false;
+      document.getElementById('result').innerHTML = '<span class="success">Scanning... align barcode</span>';
+      scanLoop();
+    };
+  } catch (err) {
+    document.getElementById('result').innerHTML = `<span class="error">Camera error: ${err.message}</span>`;
+  }
+}
+
+// 🔹 Scanning loop
+async function scanLoop() {
+  if (!isScanning) return;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
     try {
-        // Request camera access
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                facingMode: 'environment',
-                width: { ideal: 1280, max: 1920 },
-                height: { ideal: 720, max: 1080 }
-            }
-        });
-        
-        video.srcObject = stream;
-        
-        // Wait for video to load
-        video.onloadedmetadata = () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            isScanning = true;
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
-            
-            document.getElementById('result').innerHTML = '<span class="info">🎯 Scanning... point camera at barcode</span>';
-            
-            // Start scanning loop
-            scanForBarcodes();
-        };
-        
-    } catch (err) {
-        console.error('Camera error:', err);
-        
-        let errorMsg = '<span class="error">❌ Camera access failed<br><br>';
-        
-        if (err.name === 'NotAllowedError') {
-            errorMsg += '<strong>Permission denied!</strong><br>' +
-                       '• Click camera icon in address bar<br>' +
-                       '• Allow camera access<br>' +
-                       '• Refresh and try again';
-        } else if (err.name === 'NotFoundError') {
-            errorMsg += '<strong>No camera found!</strong>';
-        } else if (err.name === 'NotReadableError') {
-            errorMsg += '<strong>Camera busy!</strong><br>Close other camera apps.';
-        } else {
-            errorMsg += '<strong>Error:</strong> ' + err.message;
-        }
-        
-        errorMsg += '</span>';
-        document.getElementById('result').innerHTML = errorMsg;
-        document.getElementById('startBtn').disabled = false;
-    }
+      const barcodes = await barcodeDetector.detect(video);
+      if (barcodes.length > 0) {
+        onBarcodeDetected(barcodes[0]);
+        return;
+      }
+    } catch (err) { console.error(err); }
+  }
+  animationId = requestAnimationFrame(scanLoop);
 }
 
-// Main scanning loop using native BarcodeDetector
-async function scanForBarcodes() {
-    if (!isScanning || !barcodeDetector) return;
-    
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        try {
-            // Detect barcodes directly from video element
-            const barcodes = await barcodeDetector.detect(video);
-            
-            if (barcodes.length > 0) {
-                onBarcodeDetected(barcodes[0]);
-                return;
-            }
-        } catch (err) {
-            console.error('Barcode detection error:', err);
-        }
-    }
-    
-    // Continue scanning
-    animationId = requestAnimationFrame(scanForBarcodes);
+// 🔹 On barcode detected
+async function onBarcodeDetected(barcode) {
+  stopScanner();
+  document.getElementById('result').innerHTML = `
+    <span class="success">✅ Detected!</span>
+    <div class="detected-code">${barcode.rawValue}</div>
+    <p>Fetching product info...</p>
+  `;
+  await fetchProductInfo(barcode.rawValue);
 }
 
-// Handle barcode detection
-function onBarcodeDetected(barcode) {
-    console.log('Barcode detected:', barcode);
-    
-    // Play success sound
-    playSuccessSound();
-    
-    // Draw detection rectangle
-    drawDetectionBox(barcode);
-    
-    // Show result
-    document.getElementById('result').innerHTML = `
-        <span class="success">🎉 Barcode Detected!</span>
-        <div class="detected-code">${barcode.rawValue}</div>
-        <div class="format-info">
-            <strong>Format:</strong> ${barcode.format.toUpperCase()}
-        </div>
-    `;
-    
-    // Auto-stop after 3 seconds
-    setTimeout(() => {
-        stopScanner();
-    }, 3000);
+// 🔹 Fetch product + competitors from Supabase
+async function fetchProductInfo(barcodeValue) {
+  const { data: mainProduct, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('barcode', barcodeValue)
+    .single();
+
+  if (error || !mainProduct) {
+    document.getElementById('result').innerHTML += `<p class="error">Product not found</p>`;
+    return;
+  }
+
+  const { data: competitors } = await supabase
+    .from('competitors')
+    .select('*')
+    .eq('product_id', mainProduct.product_id);
+
+  displayProduct(mainProduct, competitors || []);
 }
 
-// Draw detection box on canvas
-function drawDetectionBox(barcode) {
-    if (!context) return;
-    
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw bounding box
-    context.strokeStyle = '#4CAF50';
-    context.lineWidth = 4;
-    context.setLineDash([]);
-    
-    const box = barcode.boundingBox;
-    context.strokeRect(box.x, box.y, box.width, box.height);
-    
-    // Draw corner points
-    if (barcode.cornerPoints && barcode.cornerPoints.length === 4) {
-        context.fillStyle = '#4CAF50';
-        barcode.cornerPoints.forEach(point => {
-            context.beginPath();
-            context.arc(point.x, point.y, 6, 0, 2 * Math.PI);
-            context.fill();
-        });
-    }
+// 🔹 Display product info + comparison
+function displayProduct(product, competitors) {
+  let html = `
+    <h2>${product.clean_name}</h2>
+    <p><strong>Health Score:</strong> ${product.health_score}/100</p>
+    <p>${product.health_analysis || ''}</p>
+    <p><strong>Price:</strong> ₹${product.price_mrp || '-'}</p>
+  `;
+
+  // Comparison table
+  let table = `<h3>Comparison</h3><table>
+    <tr><th>Feature</th><th>${product.clean_name}</th>
+    ${competitors.map(c=>`<th>${c.clean_name}</th>`).join('')}</tr>`;
+
+  const features = ['calories','protein','fiber','fat_source','sweetener','overall_health_score'];
+  features.forEach(f=>{
+    table += `<tr><td>${f}</td><td>${product[f]||'-'}</td>
+      ${competitors.map(c=>`<td>${c[f]||'-'}</td>`).join('')}</tr>`;
+  });
+  table += `</table>`;
+
+  // Ingredients
+  let ingredients = `<h3>Ingredients</h3>
+    <strong>${product.clean_name}:</strong><ul>${(product.ingredients||'').split(',').map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  competitors.forEach(c=>{
+    ingredients += `<strong>${c.clean_name}:</strong><ul>${(c.ingredients||'').split(',').map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  });
+
+  document.getElementById('result').innerHTML = html + table + ingredients;
 }
 
-// Stop scanner
+// 🔹 Stop scanner
 function stopScanner() {
-    isScanning = false;
-    
-    // Stop animation loop
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-    
-    // Clear canvas
-    if (context) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    
-    // Stop video stream
-    if (video && video.srcObject) {
-        const tracks = video.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-        video.srcObject = null;
-    }
-    
-    // Reset UI
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    
-    if (document.getElementById('result').innerHTML.indexOf('Barcode Detected') === -1) {
-        document.getElementById('result').innerHTML = '⏹️ Scanner stopped. Click "Start Scanner" to try again.';
-    }
-    
-    console.log('Scanner stopped');
+  isScanning = false;
+  if (animationId) cancelAnimationFrame(animationId);
+  if (video && video.srcObject) {
+    video.srcObject.getTracks().forEach(track=>track.stop());
+    video.srcObject = null;
+  }
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
 }
-
-// Play success sound
-function playSuccessSound() {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Success melody
-        const frequencies = [523, 659, 784]; // C5, E5, G5
-        frequencies.forEach((freq, index) => {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = freq;
-            oscillator.type = 'sine';
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime + index * 0.1);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.1 + 0.2);
-            
-            oscillator.start(audioContext.currentTime + index * 0.1);
-            oscillator.stop(audioContext.currentTime + index * 0.1 + 0.2);
-        });
-        
-    } catch (e) {
-        console.log('Audio not available');
-    }
-}
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (isScanning) {
-        stopScanner();
-    }
-});
-
-// Check support on load
-window.addEventListener('load', async () => {
-    const hasSupport = await checkBarcodeSupport();
-    if (!hasSupport) {
-        document.getElementById('compatibilityWarning').style.display = 'block';
-    }
-    console.log('Native barcode scanner ready');
-});
 </script>
-
 </body>
 </html>
