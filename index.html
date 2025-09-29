@@ -486,6 +486,7 @@ async function fetchProductInfo(barcodeValue) {
     try {
         console.log('Searching for barcode:', barcodeValue);
         
+        // Get main product
         const { data: mainProduct, error } = await supabase
             .from('products')
             .select('*')
@@ -504,16 +505,45 @@ async function fetchProductInfo(barcodeValue) {
 
         console.log('Found product:', mainProduct);
 
-        const { data: competitors, error: compError } = await supabase
+        // Get competitor IDs for this product
+        const { data: competitorMapping, error: compMappingError } = await supabase
             .from('competitors')
+            .select('*')
+            .eq('product_id', mainProduct.product_id)
+            .single();
+
+        let competitors = [];
+        if (competitorMapping && !compMappingError) {
+            // Get competitor product details
+            const competitorIds = [
+                competitorMapping.competitor_1,
+                competitorMapping.competitor_2,
+                competitorMapping.competitor_3
+            ].filter(id => id); // Remove null/empty values
+
+            if (competitorIds.length > 0) {
+                const { data: competitorProducts, error: compError } = await supabase
+                    .from('products')
+                    .select('*')
+                    .in('product_id', competitorIds);
+
+                if (!compError) {
+                    competitors = competitorProducts || [];
+                }
+            }
+        }
+
+        // Get ingredients for main product
+        const { data: ingredients, error: ingredientsError } = await supabase
+            .from('ingredients')
             .select('*')
             .eq('product_id', mainProduct.product_id);
 
-        if (compError) {
-            console.error('Competitors search error:', compError);
+        if (ingredientsError) {
+            console.error('Ingredients error:', ingredientsError);
         }
 
-        displayProduct(mainProduct, competitors || []);
+        displayProduct(mainProduct, competitors, ingredients || []);
         
     } catch (err) {
         console.error('Database error:', err);
@@ -524,90 +554,242 @@ async function fetchProductInfo(barcodeValue) {
     }
 }
 
-// 🔹 Display product info + comparison
-function displayProduct(product, competitors) {
+// 🔹 Display product info + comparison (Updated for your exact table structure)
+function displayProduct(product, competitors, ingredients) {
     const healthScore = product.health_score || 0;
-    let scoreClass = 'score-poor';
     let recommendation = '❌ AVOID';
+    let recommendationClass = 'score-poor';
     
     if (healthScore >= 70) {
-        scoreClass = 'score-excellent';
         recommendation = '✅ BUY';
+        recommendationClass = 'score-excellent';
     } else if (healthScore >= 50) {
-        scoreClass = 'score-good';
         recommendation = '⚠️ CAUTION';
+        recommendationClass = 'score-good';
     }
     
+    // SECTION 1: Health Score & Recommendation (matching your mockup exactly)
     let html = `
-        <div class="health-score ${scoreClass}">
-            <div>Health Score: ${healthScore}/100</div>
-            <div style="font-size: 18px; margin-top: 10px;">${recommendation}</div>
+        <div style="border: 2px solid #ddd; border-radius: 15px; padding: 25px; margin: 20px 0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 22px;">📦 ${product.name} (${product.weight_g}g)</h2>
+            
+            <div class="health-score ${recommendationClass}" style="margin: 15px 0;">
+                Health Score: ${healthScore} / 100 
+                <div style="font-size: 20px; margin-top: 8px;">${recommendation}</div>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 12px; margin: 15px 0; border-left: 5px solid #3498db;">
+                <h3 style="margin: 0 0 10px 0; color: #2c3e50;">💡 Impact:</h3>
+                <div style="color: #34495e; line-height: 1.6;">
+                    ${product.health_analysis || 'No detailed analysis available'}
+                </div>
+                ${getHealthImpactDetails(product, ingredients)}
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
+                <div><strong>💰 Price:</strong> ₹${product.price}</div>
+                <div><strong>📏 Weight:</strong> ${product.weight_g}g</div>
+                <div><strong>🔥 Calories:</strong> ${product.calories} kcal</div>
+            </div>
         </div>
-        
-        <h2>📦 ${product.clean_name}</h2>
-        <p><strong>💰 Price:</strong> ₹${product.price_mrp || 'N/A'}</p>
-        <p><strong>📊 Analysis:</strong> ${product.health_analysis || 'No analysis available'}</p>
     `;
 
-    // Comparison table
+    // SECTION 2: Competitor Comparison Table (matching your exact format)
     if (competitors.length > 0) {
-        html += `<h3>🔍 Competitor Comparison</h3>
-        <table>
-            <tr>
-                <th>Feature</th>
-                <th>${product.clean_name}</th>
-                ${competitors.map(c => `<th>${c.clean_name}</th>`).join('')}
-            </tr>`;
-
-        const features = [
-            { key: 'calories', label: 'Calories' },
-            { key: 'protein', label: 'Protein' },
-            { key: 'fiber', label: 'Fiber' },
-            { key: 'fat_source', label: 'Fat Source' },
-            { key: 'sweetener', label: 'Sweetener' },
-            { key: 'overall_health_score', label: 'Health Score' }
-        ];
-
-        features.forEach(feature => {
-            html += `<tr>
-                <td><strong>${feature.label}</strong></td>
-                <td>${product[feature.key] || '-'}</td>
-                ${competitors.map(c => `<td>${c[feature.key] || '-'}</td>`).join('')}
-            </tr>`;
-        });
-        html += `</table>`;
-    }
-
-    // Ingredients section
-    html += `<h3>🧪 Ingredients Analysis</h3>`;
-    
-    if (product.ingredients) {
-        html += `<div style="margin-bottom: 15px;">
-            <strong>📦 ${product.clean_name}:</strong>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 5px;">
-                ${product.ingredients.split(',').map(i => `<span style="display: inline-block; background: #e9ecef; padding: 3px 8px; margin: 2px; border-radius: 12px; font-size: 12px;">${i.trim()}</span>`).join('')}
-            </div>
-        </div>`;
-    }
-
-    competitors.forEach(c => {
-        if (c.ingredients) {
-            html += `<div style="margin-bottom: 15px;">
-                <strong>🏪 ${c.clean_name}:</strong>
-                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 5px;">
-                    ${c.ingredients.split(',').map(i => `<span style="display: inline-block; background: #e9ecef; padding: 3px 8px; margin: 2px; border-radius: 12px; font-size: 12px;">${i.trim()}</span>`).join('')}
+        html += `
+            <div style="border: 2px solid #ddd; border-radius: 15px; padding: 25px; margin: 20px 0; background: white;">
+                <h3 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 20px;">🔍 Competitor Comparison</h3>
+                
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                <th style="padding: 12px 8px; text-align: left; border: 1px solid #ddd;">Component / Feature</th>
+                                <th style="padding: 12px 8px; text-align: center; border: 1px solid #ddd; background: rgba(255,255,255,0.1);">
+                                    <strong>${product.name}</strong>
+                                </th>
+                                ${competitors.map(comp => 
+                                    `<th style="padding: 12px 8px; text-align: center; border: 1px solid #ddd;">${comp.name}</th>`
+                                ).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${generateComparisonRows(product, competitors)}
+                        </tbody>
+                    </table>
                 </div>
-            </div>`;
-        }
-    });
+            </div>
+        `;
+    }
 
-    html += `<div style="text-align: center; margin-top: 30px;">
-        <button onclick="startScanner()" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);">
-            🔄 Scan Another Product
-        </button>
-    </div>`;
+    // SECTION 3: Detailed Ingredients (bonus section)
+    if (ingredients.length > 0) {
+        html += `
+            <div style="border: 2px solid #ddd; border-radius: 15px; padding: 25px; margin: 20px 0; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                <h3 style="margin: 0 0 20px 0; color: #2c3e50;">🧪 Ingredient Analysis</h3>
+                <div style="display: grid; gap: 12px;">
+                    ${ingredients.map(ing => `
+                        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid ${getIngredientColor(ing.type)}; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                                <div>
+                                    <strong style="color: #2c3e50;">${ing.name}</strong>
+                                    <span style="background: ${getIngredientBadgeColor(ing.type)}; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">
+                                        ${ing.type}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="color: #7f8c8d; font-size: 13px; margin-top: 8px; line-height: 1.4;">
+                                ${ing.impact || 'Benefits not specified'}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Action buttons
+    html += `
+        <div style="text-align: center; margin: 30px 0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="startScanner()" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); flex: 1; max-width: 200px;">
+                🔄 Scan Another Product
+            </button>
+            <button onclick="shareResults('${product.name}', ${healthScore})" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); flex: 1; max-width: 200px;">
+                📤 Share Results
+            </button>
+        </div>
+    `;
 
     document.getElementById('result').innerHTML = html;
+}
+
+// Helper function to generate comparison rows
+function generateComparisonRows(mainProduct, competitors) {
+    const comparisonFeatures = [
+        { key: 'calories', label: 'Calories', unit: 'kcal' },
+        { key: 'protein', label: 'Protein', unit: '' },
+        { key: 'fiber', label: 'Fiber', unit: '' },
+        { key: 'fat', label: 'Fat Source', unit: '' },
+        { key: 'sugar', label: 'Sugar Content', unit: '' },
+        { key: 'artificial_colors', label: 'Artificial Colors', unit: '' },
+        { key: 'preservatives', label: 'Preservatives', unit: '' },
+        { key: 'emulsifiers', label: 'Emulsifiers/Additives', unit: '' },
+        { key: 'additive_load', label: 'Additive Load', unit: '' },
+        { key: 'health_score', label: 'Overall Health Score', unit: '/100' }
+    ];
+
+    return comparisonFeatures.map(feature => {
+        let mainValue = mainProduct[feature.key] || 'None';
+        if (feature.key === 'health_score') {
+            mainValue = getHealthScoreDisplay(mainProduct[feature.key]);
+        } else if ((feature.key === 'artificial_colors' || feature.key === 'preservatives' || feature.key === 'emulsifiers') && !mainValue) {
+            mainValue = '✅ None';
+        }
+
+        const competitorValues = competitors.map(comp => {
+            let value = comp[feature.key] || 'None';
+            if (feature.key === 'health_score') {
+                value = getHealthScoreDisplay(comp[feature.key]);
+            } else if ((feature.key === 'artificial_colors' || feature.key === 'preservatives' || feature.key === 'emulsifiers') && !value) {
+                value = '✅ None';
+            }
+            return `<td style="padding: 10px 8px; border: 1px solid #ddd; text-align: center;">${value} ${feature.unit}</td>`;
+        }).join('');
+
+        return `
+            <tr style="background: ${feature.key === 'health_score' ? '#f8f9fa' : 'white'};">
+                <td style="padding: 10px 8px; border: 1px solid #ddd; font-weight: bold; background: #f8f9fa;">
+                    ${feature.label}
+                </td>
+                <td style="padding: 10px 8px; border: 1px solid #ddd; text-align: center; background: rgba(39, 174, 96, 0.1); font-weight: bold;">
+                    ${mainValue} ${feature.unit}
+                </td>
+                ${competitorValues}
+            </tr>
+        `;
+    }).join('');
+}
+
+// Helper function to get health impact details
+function getHealthImpactDetails(product, ingredients) {
+    let details = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ecf0f1;">';
+    
+    // Positive aspects
+    let positives = [];
+    if (product.fiber && product.fiber !== '0') positives.push(`High fiber content (${product.fiber})`);
+    if (product.protein && product.protein !== '0') positives.push(`Good protein source (${product.protein})`);
+    if (!product.artificial_colors) positives.push('No artificial colors');
+    if (!product.preservatives) positives.push('No preservatives');
+    if (product.additive_load === 0) positives.push('Zero additive load');
+    
+    if (positives.length > 0) {
+        details += '<div style="color: #27ae60; margin-bottom: 10px;"><strong>✅ Positive aspects:</strong><br>';
+        details += positives.map(p => `• ${p}`).join('<br>');
+        details += '</div>';
+    }
+    
+    // Areas of concern
+    let concerns = [];
+    if (product.sugar && product.sugar.includes('tsp') && parseInt(product.sugar) > 3) {
+        concerns.push(`High sugar content (${product.sugar})`);
+    }
+    if (product.artificial_colors) concerns.push(`Contains artificial colors: ${product.artificial_colors}`);
+    if (product.preservatives) concerns.push(`Contains preservatives: ${product.preservatives}`);
+    if (product.additive_load > 5) concerns.push(`High additive load (${product.additive_load} additives)`);
+    
+    if (concerns.length > 0) {
+        details += '<div style="color: #e74c3c; margin-bottom: 10px;"><strong>⚠️ Areas of concern:</strong><br>';
+        details += concerns.map(c => `• ${c}`).join('<br>');
+        details += '</div>';
+    }
+    
+    details += '</div>';
+    return details;
+}
+
+// Helper function to get health score display with emoji
+function getHealthScoreDisplay(score) {
+    if (score >= 70) return `${score} ✅`;
+    if (score >= 50) return `${score} ⚠️`;
+    return `${score} ❌`;
+}
+
+// Helper functions for ingredient styling
+function getIngredientColor(type) {
+    switch(type.toLowerCase()) {
+        case 'natural': return '#27ae60';
+        case 'natural sugar': return '#f39c12';
+        case 'healthy fat': return '#3498db';
+        case 'spice': return '#9b59b6';
+        default: return '#95a5a6';
+    }
+}
+
+function getIngredientBadgeColor(type) {
+    switch(type.toLowerCase()) {
+        case 'natural': return '#27ae60';
+        case 'natural sugar': return '#f39c12';
+        case 'healthy fat': return '#3498db';
+        case 'spice': return '#9b59b6';
+        default: return '#95a5a6';
+    }
+}
+
+// Share function
+function shareResults(productName, healthScore) {
+    if (navigator.share) {
+        navigator.share({
+            title: `${productName} Health Analysis`,
+            text: `Just scanned ${productName} - Health Score: ${healthScore}/100`,
+            url: window.location.href
+        });
+    } else {
+        // Fallback - copy to clipboard
+        const shareText = `Just scanned ${productName} - Health Score: ${healthScore}/100`;
+        navigator.clipboard.writeText(shareText).then(() => {
+            alert('Results copied to clipboard!');
+        });
+    }
 }
 
 // 🔹 Stop scanner
