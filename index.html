@@ -29,34 +29,179 @@
   }
   
   h1 { text-align: center; margin-bottom: 20px; }
-  #scanner-container { width: 100%; height: 300px; position: relative; margin: 20px 0; border: 3px solid #4CAF50; border-radius: 12px; overflow: hidden; }
+  
+  #scanner-container { 
+    width: 100%; 
+    height: 300px; 
+    position: relative; 
+    margin: 20px 0; 
+    border: 3px solid #4CAF50; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    background: #000;
+  }
+  
   #video { width: 100%; height: 100%; object-fit: cover; }
   #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-  #guide-box { position: absolute; top: 35%; left: 10%; right: 10%; height: 30%; border: 3px dashed #4CAF50; border-radius: 12px; }
-  #result { margin-top: 20px; padding: 20px; border-radius: 12px; background: #f7f9fc; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 14px; }
-  th { background: #eee; }
-  .detected-code { font-family: monospace; font-weight: bold; padding: 10px; background: #27ae60; color: white; border-radius: 8px; margin: 10px 0; display: inline-block; }
+  
+  #guide-box { 
+    position: absolute; 
+    top: 35%; 
+    left: 10%; 
+    right: 10%; 
+    height: 30%; 
+    border: 3px dashed #4CAF50; 
+    border-radius: 12px;
+    background: rgba(76, 175, 80, 0.1);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  
+  #guide-text {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #4CAF50;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  
+  #result { 
+    margin-top: 20px; 
+    padding: 20px; 
+    border-radius: 12px; 
+    background: #f7f9fc; 
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); 
+    min-height: 60px;
+  }
+  
+  table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 20px; 
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  th, td { 
+    border: 1px solid #ddd; 
+    padding: 12px 8px; 
+    text-align: left; 
+    font-size: 14px; 
+  }
+  
+  th { 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .detected-code { 
+    font-family: 'SF Mono', 'Monaco', monospace; 
+    font-weight: bold; 
+    padding: 15px; 
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white; 
+    border-radius: 12px; 
+    margin: 15px 0; 
+    display: block;
+    text-align: center;
+    font-size: 18px;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+  }
+  
+  .barcode-info {
+    background: #e8f4f8;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    border-left: 4px solid #3498db;
+  }
+  
   .error { color: #e74c3c; font-weight: bold; }
   .success { color: #27ae60; font-weight: bold; }
+  .info { color: #3498db; font-weight: bold; }
+  .warning { color: #f39c12; font-weight: bold; }
+  
+  button {
+    padding: 12px 24px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  button:hover { transform: translateY(-2px); }
+  button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
+  
+  .health-score {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 15px 0;
+    text-align: center;
+  }
+  
+  .score-excellent { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; }
+  .score-good { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; }
+  .score-poor { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+  
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0,0,0,0.1);
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
 </head>
 <body>
+
 <div class="container">
-  <h1>📦 Smart Barcode Scanner</h1>
+  <h1>🌱 Smart Product Scanner</h1>
 
   <div id="scanner-container">
     <video id="video" playsinline autoplay muted></video>
     <canvas id="canvas"></canvas>
-    <div id="guide-box"></div>
+    <div id="guide-box">
+      <div id="guide-text">🎯 Align barcode here</div>
+    </div>
   </div>
 
-  <div id="result">Ready to scan...</div>
+  <div id="result">
+    <p>Ready to scan barcodes! Point your camera at any product barcode.</p>
+  </div>
 
   <div style="text-align:center; margin-top:20px;">
     <button id="startBtn" onclick="startScanner()">🚀 Start Scanner</button>
     <button id="stopBtn" onclick="stopScanner()" disabled>⏹ Stop Scanner</button>
+    <button onclick="testBarcode()" style="background: #95a5a6;">🧪 Test with Sample</button>
   </div>
 </div>
 
@@ -66,154 +211,441 @@
 <script>
 let video = null, canvas = null, context = null;
 let isScanning = false, animationId = null, barcodeDetector = null;
+let lastDetectedBarcode = null;
+let detectionConfidence = 0;
 
 // 🔹 Setup Supabase
 const supabaseUrl = "https://fdfdxszvenmbdkmxkuej.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// 🔹 Barcode validation and formatting
+function validateAndFormatBarcode(rawBarcode, format) {
+    console.log('Raw barcode:', rawBarcode, 'Format:', format);
+    
+    // Remove any non-numeric characters
+    let cleanBarcode = rawBarcode.replace(/[^0-9]/g, '');
+    
+    // Handle different formats
+    switch(format) {
+        case 'ean_13':
+            if (cleanBarcode.length === 13) {
+                return cleanBarcode;
+            } else if (cleanBarcode.length === 12) {
+                // Convert UPC-A to EAN-13 by adding leading zero
+                return '0' + cleanBarcode;
+            }
+            break;
+            
+        case 'ean_8':
+            if (cleanBarcode.length === 8) {
+                return cleanBarcode;
+            }
+            break;
+            
+        case 'upc_a':
+            if (cleanBarcode.length === 12) {
+                return cleanBarcode;
+            } else if (cleanBarcode.length === 11) {
+                // Add check digit if missing
+                return cleanBarcode + calculateCheckDigit(cleanBarcode);
+            }
+            break;
+            
+        case 'code_128':
+        case 'code_39':
+            // These can contain letters, return as-is after basic cleanup
+            return rawBarcode.trim();
+    }
+    
+    // If validation fails, return the cleaned numeric version
+    return cleanBarcode;
+}
+
+// 🔹 Calculate UPC check digit
+function calculateCheckDigit(barcode) {
+    const digits = barcode.split('').map(Number);
+    let sum = 0;
+    
+    for (let i = 0; i < digits.length; i++) {
+        sum += digits[i] * (i % 2 === 0 ? 1 : 3);
+    }
+    
+    return ((10 - (sum % 10)) % 10).toString();
+}
 
 // 🔹 Check BarcodeDetector support
 async function checkBarcodeSupport() {
-  if ('BarcodeDetector' in window) {
-    try {
-      await BarcodeDetector.getSupportedFormats();
-      return true;
-    } catch (err) { return false; }
-  }
-  return false;
+    if ('BarcodeDetector' in window) {
+        try {
+            const formats = await BarcodeDetector.getSupportedFormats();
+            console.log('Supported formats:', formats);
+            return true;
+        } catch (err) { 
+            console.error('BarcodeDetector error:', err);
+            return false; 
+        }
+    }
+    return false;
 }
 
-// 🔹 Init detector
+// 🔹 Init detector with multiple formats
 async function initBarcodeDetector() {
-  try {
-    barcodeDetector = new BarcodeDetector({
-      formats: ['ean_13']
-    });
-    return true;
-  } catch (err) { return false; }
+    try {
+        barcodeDetector = new BarcodeDetector({
+            formats: [
+                'ean_13',      // Most common product barcodes
+                'ean_8',       // Short product barcodes
+                'upc_a',       // US product barcodes
+                'upc_e',       // Short US barcodes
+                'code_128',    // Industrial barcodes
+                'code_39',     // Common industrial format
+                'qr_code'      // QR codes
+            ]
+        });
+        console.log('BarcodeDetector initialized with multiple formats');
+        return true;
+    } catch (err) { 
+        console.error('Failed to create BarcodeDetector:', err);
+        return false; 
+    }
 }
 
 // 🔹 Start scanner
 async function startScanner() {
-  if (isScanning) return;
-  video = document.getElementById('video');
-  canvas = document.getElementById('canvas');
-  context = canvas.getContext('2d');
+    if (isScanning) return;
+    
+    // Reset detection state
+    lastDetectedBarcode = null;
+    detectionConfidence = 0;
+    
+    video = document.getElementById('video');
+    canvas = document.getElementById('canvas');
+    context = canvas.getContext('2d');
 
-  const hasSupport = await checkBarcodeSupport();
-  if (!hasSupport) {
-    document.getElementById('result').innerHTML = '<span class="error">❌ Barcode API not supported</span>';
-    return;
-  }
-  await initBarcodeDetector();
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    video.srcObject = stream;
-
-    video.onloadedmetadata = () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      isScanning = true;
-      document.getElementById('startBtn').disabled = true;
-      document.getElementById('stopBtn').disabled = false;
-      document.getElementById('result').innerHTML = '<span class="success">Scanning... align barcode</span>';
-      scanLoop();
-    };
-  } catch (err) {
-    document.getElementById('result').innerHTML = `<span class="error">Camera error: ${err.message}</span>`;
-  }
-}
-
-// 🔹 Scanning loop
-async function scanLoop() {
-  if (!isScanning) return;
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    try {
-      const barcodes = await barcodeDetector.detect(video);
-      if (barcodes.length > 0) {
-        onBarcodeDetected(barcodes[0]);
+    const hasSupport = await checkBarcodeSupport();
+    if (!hasSupport) {
+        document.getElementById('result').innerHTML = `
+            <div class="error">❌ Barcode Detection API not supported in this browser</div>
+            <p>Try using Chrome or Edge on Android, or enable "Experimental Web Platform features" in chrome://flags</p>
+        `;
         return;
-      }
-    } catch (err) { console.error(err); }
-  }
-  animationId = requestAnimationFrame(scanLoop);
+    }
+    
+    const detectorReady = await initBarcodeDetector();
+    if (!detectorReady) {
+        document.getElementById('result').innerHTML = '<div class="error">❌ Failed to initialize barcode detector</div>';
+        return;
+    }
+
+    try {
+        document.getElementById('result').innerHTML = '<div class="info"><span class="loading"></span>Starting camera...</div>';
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 }
+            } 
+        });
+        
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            isScanning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('result').innerHTML = '<div class="success">📱 Scanner active! Align barcode in the green box</div>';
+            scanLoop();
+        };
+        
+    } catch (err) {
+        console.error('Camera error:', err);
+        document.getElementById('result').innerHTML = `<div class="error">❌ Camera error: ${err.message}</div>`;
+    }
 }
 
-// 🔹 On barcode detected
-async function onBarcodeDetected(barcode) {
-  stopScanner();
-  document.getElementById('result').innerHTML = `
-    <span class="success">✅ Detected!</span>
-    <div class="detected-code">${barcode.rawValue}</div>
-    <p>Fetching product info...</p>
-  `;
-  await fetchProductInfo(barcode.rawValue);
+// 🔹 Scanning loop with confidence checking
+async function scanLoop() {
+    if (!isScanning) return;
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        try {
+            const barcodes = await barcodeDetector.detect(video);
+            
+            if (barcodes.length > 0) {
+                const barcode = barcodes[0];
+                const formattedBarcode = validateAndFormatBarcode(barcode.rawValue, barcode.format);
+                
+                // Confidence checking - same barcode detected multiple times
+                if (lastDetectedBarcode === formattedBarcode) {
+                    detectionConfidence++;
+                    if (detectionConfidence >= 3) { // Require 3 consistent detections
+                        onBarcodeDetected(barcode, formattedBarcode);
+                        return;
+                    }
+                } else {
+                    lastDetectedBarcode = formattedBarcode;
+                    detectionConfidence = 1;
+                }
+                
+                // Visual feedback for detection
+                drawDetectionBox(barcode);
+                document.getElementById('result').innerHTML = `
+                    <div class="info">🎯 Detecting: ${formattedBarcode} (${detectionConfidence}/3)</div>
+                `;
+            }
+        } catch (err) { 
+            console.error('Barcode detection error:', err); 
+        }
+    }
+    
+    animationId = requestAnimationFrame(scanLoop);
+}
+
+// 🔹 Draw detection box
+function drawDetectionBox(barcode) {
+    if (!context) return;
+    
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw bounding box
+    context.strokeStyle = '#4CAF50';
+    context.lineWidth = 4;
+    context.setLineDash([]);
+    
+    const box = barcode.boundingBox;
+    context.strokeRect(box.x, box.y, box.width, box.height);
+    
+    // Draw corner points if available
+    if (barcode.cornerPoints && barcode.cornerPoints.length === 4) {
+        context.fillStyle = '#4CAF50';
+        barcode.cornerPoints.forEach(point => {
+            context.beginPath();
+            context.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+            context.fill();
+        });
+    }
+}
+
+// 🔹 On barcode detected with validation
+async function onBarcodeDetected(barcode, formattedBarcode) {
+    stopScanner();
+    
+    // Play success sound
+    playSuccessSound();
+    
+    document.getElementById('result').innerHTML = `
+        <div class="success">✅ Barcode Detected Successfully!</div>
+        <div class="detected-code">${formattedBarcode}</div>
+        <div class="barcode-info">
+            <strong>Format:</strong> ${barcode.format.toUpperCase()}<br>
+            <strong>Raw Value:</strong> ${barcode.rawValue}<br>
+            <strong>Processed:</strong> ${formattedBarcode}
+        </div>
+        <div class="info"><span class="loading"></span>Fetching product information...</div>
+    `;
+    
+    // Fetch product info
+    await fetchProductInfo(formattedBarcode);
+}
+
+// 🔹 Test function for development
+function testBarcode() {
+    onBarcodeDetected(
+        { rawValue: '8901030895931', format: 'ean_13' }, 
+        '8901030895931'
+    );
+}
+
+// 🔹 Play success sound
+function playSuccessSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {
+        console.log('Audio not available');
+    }
 }
 
 // 🔹 Fetch product + competitors from Supabase
 async function fetchProductInfo(barcodeValue) {
-  const { data: mainProduct, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('barcode', barcodeValue)
-    .single();
+    try {
+        console.log('Searching for barcode:', barcodeValue);
+        
+        const { data: mainProduct, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('barcode', barcodeValue)
+            .single();
 
-  if (error || !mainProduct) {
-    document.getElementById('result').innerHTML += `<p class="error">Product not found</p>`;
-    return;
-  }
+        if (error || !mainProduct) {
+            console.error('Product search error:', error);
+            document.getElementById('result').innerHTML += `
+                <div class="error">❌ Product not found in database</div>
+                <p>Barcode: <code>${barcodeValue}</code> is not in our product catalog yet.</p>
+                <button onclick="startScanner()">🔄 Scan Another Product</button>
+            `;
+            return;
+        }
 
-  const { data: competitors } = await supabase
-    .from('competitors')
-    .select('*')
-    .eq('product_id', mainProduct.product_id);
+        console.log('Found product:', mainProduct);
 
-  displayProduct(mainProduct, competitors || []);
+        const { data: competitors, error: compError } = await supabase
+            .from('competitors')
+            .select('*')
+            .eq('product_id', mainProduct.product_id);
+
+        if (compError) {
+            console.error('Competitors search error:', compError);
+        }
+
+        displayProduct(mainProduct, competitors || []);
+        
+    } catch (err) {
+        console.error('Database error:', err);
+        document.getElementById('result').innerHTML += `
+            <div class="error">❌ Database connection error</div>
+            <p>Please check your internet connection and try again.</p>
+        `;
+    }
 }
 
 // 🔹 Display product info + comparison
 function displayProduct(product, competitors) {
-  let html = `
-    <h2>${product.clean_name}</h2>
-    <p><strong>Health Score:</strong> ${product.health_score}/100</p>
-    <p>${product.health_analysis || ''}</p>
-    <p><strong>Price:</strong> ₹${product.price_mrp || '-'}</p>
-  `;
+    const healthScore = product.health_score || 0;
+    let scoreClass = 'score-poor';
+    let recommendation = '❌ AVOID';
+    
+    if (healthScore >= 70) {
+        scoreClass = 'score-excellent';
+        recommendation = '✅ BUY';
+    } else if (healthScore >= 50) {
+        scoreClass = 'score-good';
+        recommendation = '⚠️ CAUTION';
+    }
+    
+    let html = `
+        <div class="health-score ${scoreClass}">
+            <div>Health Score: ${healthScore}/100</div>
+            <div style="font-size: 18px; margin-top: 10px;">${recommendation}</div>
+        </div>
+        
+        <h2>📦 ${product.clean_name}</h2>
+        <p><strong>💰 Price:</strong> ₹${product.price_mrp || 'N/A'}</p>
+        <p><strong>📊 Analysis:</strong> ${product.health_analysis || 'No analysis available'}</p>
+    `;
 
-  // Comparison table
-  let table = `<h3>Comparison</h3><table>
-    <tr><th>Feature</th><th>${product.clean_name}</th>
-    ${competitors.map(c=>`<th>${c.clean_name}</th>`).join('')}</tr>`;
+    // Comparison table
+    if (competitors.length > 0) {
+        html += `<h3>🔍 Competitor Comparison</h3>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>${product.clean_name}</th>
+                ${competitors.map(c => `<th>${c.clean_name}</th>`).join('')}
+            </tr>`;
 
-  const features = ['calories','protein','fiber','fat_source','sweetener','overall_health_score'];
-  features.forEach(f=>{
-    table += `<tr><td>${f}</td><td>${product[f]||'-'}</td>
-      ${competitors.map(c=>`<td>${c[f]||'-'}</td>`).join('')}</tr>`;
-  });
-  table += `</table>`;
+        const features = [
+            { key: 'calories', label: 'Calories' },
+            { key: 'protein', label: 'Protein' },
+            { key: 'fiber', label: 'Fiber' },
+            { key: 'fat_source', label: 'Fat Source' },
+            { key: 'sweetener', label: 'Sweetener' },
+            { key: 'overall_health_score', label: 'Health Score' }
+        ];
 
-  // Ingredients
-  let ingredients = `<h3>Ingredients</h3>
-    <strong>${product.clean_name}:</strong><ul>${(product.ingredients||'').split(',').map(i=>`<li>${i}</li>`).join('')}</ul>`;
-  competitors.forEach(c=>{
-    ingredients += `<strong>${c.clean_name}:</strong><ul>${(c.ingredients||'').split(',').map(i=>`<li>${i}</li>`).join('')}</ul>`;
-  });
+        features.forEach(feature => {
+            html += `<tr>
+                <td><strong>${feature.label}</strong></td>
+                <td>${product[feature.key] || '-'}</td>
+                ${competitors.map(c => `<td>${c[feature.key] || '-'}</td>`).join('')}
+            </tr>`;
+        });
+        html += `</table>`;
+    }
 
-  document.getElementById('result').innerHTML = html + table + ingredients;
+    // Ingredients section
+    html += `<h3>🧪 Ingredients Analysis</h3>`;
+    
+    if (product.ingredients) {
+        html += `<div style="margin-bottom: 15px;">
+            <strong>📦 ${product.clean_name}:</strong>
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 5px;">
+                ${product.ingredients.split(',').map(i => `<span style="display: inline-block; background: #e9ecef; padding: 3px 8px; margin: 2px; border-radius: 12px; font-size: 12px;">${i.trim()}</span>`).join('')}
+            </div>
+        </div>`;
+    }
+
+    competitors.forEach(c => {
+        if (c.ingredients) {
+            html += `<div style="margin-bottom: 15px;">
+                <strong>🏪 ${c.clean_name}:</strong>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 5px;">
+                    ${c.ingredients.split(',').map(i => `<span style="display: inline-block; background: #e9ecef; padding: 3px 8px; margin: 2px; border-radius: 12px; font-size: 12px;">${i.trim()}</span>`).join('')}
+                </div>
+            </div>`;
+        }
+    });
+
+    html += `<div style="text-align: center; margin-top: 30px;">
+        <button onclick="startScanner()" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);">
+            🔄 Scan Another Product
+        </button>
+    </div>`;
+
+    document.getElementById('result').innerHTML = html;
 }
 
 // 🔹 Stop scanner
 function stopScanner() {
-  isScanning = false;
-  if (animationId) cancelAnimationFrame(animationId);
-  if (video && video.srcObject) {
-    video.srcObject.getTracks().forEach(track=>track.stop());
-    video.srcObject = null;
-  }
-  document.getElementById('startBtn').disabled = false;
-  document.getElementById('stopBtn').disabled = true;
+    isScanning = false;
+    lastDetectedBarcode = null;
+    detectionConfidence = 0;
+    
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    
+    if (context) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+    
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
 }
+
+// 🔹 Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (isScanning) {
+        stopScanner();
+    }
+});
+
+// 🔹 Initialize on load
+window.addEventListener('load', () => {
+    console.log('Smart barcode scanner loaded');
+});
 </script>
+
 </body>
 </html>
