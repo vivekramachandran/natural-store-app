@@ -3,205 +3,679 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Barcode Scanner</title>
+<title>NaturalScan - Know What You Eat</title>
 <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
   body { 
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    margin: 0; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
     color: white;
+    padding: 60px 20px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
   }
   
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: move 20s linear infinite;
+    opacity: 0.3;
+  }
+  
+  @keyframes move {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+  }
+  
+  .hero h1 {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero p {
+    font-size: 21px;
+    font-weight: 400;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Container */
   .container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 700px;
-    width: 95vw;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    backdrop-filter: blur(10px);
-    color: #333;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 20px;
   }
   
-  h1 { text-align: center; margin-bottom: 20px; }
+  /* Scanner Section */
+  .scanner-section {
+    background: white;
+    border-radius: 18px;
+    padding: 40px;
+    margin: -40px auto 40px;
+    max-width: 720px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+    position: relative;
+    z-index: 2;
+  }
   
-  #scanner-container { 
-    width: 100%; 
-    height: 300px; 
-    position: relative; 
-    margin: 20px 0; 
-    border: 3px solid #4CAF50; 
-    border-radius: 12px; 
-    overflow: hidden; 
+  #scanner-container {
+    width: 100%;
+    height: 380px;
+    position: relative;
+    margin: 30px 0;
+    border-radius: 18px;
+    overflow: hidden;
     background: #000;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   }
   
-  #video { width: 100%; height: 100%; object-fit: cover; }
-  #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-  
-  #guide-box { 
-    position: absolute; 
-    top: 35%; 
-    left: 10%; 
-    right: 10%; 
-    height: 30%; 
-    border: 3px dashed #4CAF50; 
-    border-radius: 12px;
-    background: rgba(76, 175, 80, 0.1);
-    animation: pulse 2s infinite;
+  #video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   
-  @keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
+  #canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  
+  #guide-box {
+    position: absolute;
+    top: 35%;
+    left: 10%;
+    right: 10%;
+    height: 30%;
+    border: 3px solid rgba(0, 212, 170, 0.8);
+    border-radius: 18px;
+    background: rgba(0, 212, 170, 0.05);
+    animation: scanPulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes scanPulse {
+    0%, 100% { 
+      opacity: 0.6;
+      box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+    }
+    50% { 
+      opacity: 1;
+      box-shadow: 0 0 0 10px rgba(0, 212, 170, 0);
+    }
   }
   
   #guide-text {
     position: absolute;
-    top: -35px;
+    top: -40px;
     left: 50%;
     transform: translateX(-50%);
-    color: #4CAF50;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 8px 16px;
+    color: white;
+    background: rgba(0, 212, 170, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 10px 20px;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
   }
   
-  #result { 
-    margin-top: 20px; 
-    padding: 20px; 
-    border-radius: 12px; 
-    background: #f7f9fc; 
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); 
-    min-height: 60px;
+  /* Buttons */
+  .button-group {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
   }
-  
-  table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    margin-top: 20px; 
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
-  
-  th, td { 
-    border: 1px solid #ddd; 
-    padding: 12px 8px; 
-    text-align: left; 
-    font-size: 14px; 
-  }
-  
-  th { 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-weight: 600;
-    text-align: center;
-  }
-  
-  .detected-code { 
-    font-family: 'SF Mono', 'Monaco', monospace; 
-    font-weight: bold; 
-    padding: 15px; 
-    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-    color: white; 
-    border-radius: 12px; 
-    margin: 15px 0; 
-    display: block;
-    text-align: center;
-    font-size: 18px;
-    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-  }
-  
-  .barcode-info {
-    background: #e8f4f8;
-    padding: 10px;
-    border-radius: 8px;
-    margin: 10px 0;
-    border-left: 4px solid #3498db;
-  }
-  
-  .error { color: #e74c3c; font-weight: bold; }
-  .success { color: #27ae60; font-weight: bold; }
-  .info { color: #3498db; font-weight: bold; }
-  .warning { color: #f39c12; font-weight: bold; }
   
   button {
-    padding: 12px 24px;
-    margin: 5px;
+    padding: 14px 32px;
     border: none;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    border-radius: 980px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  
+  button:hover::before {
+    transform: translateX(100%);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(0, 212, 170, 0.3);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: 0 6px 24px rgba(0, 212, 170, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  
+  .btn-secondary {
+    background: white;
+    color: #00a8ff;
+    border: 2px solid #00a8ff;
+  }
+  
+  .btn-secondary:hover {
+    background: #f5f5f7;
+    transform: translateY(-2px);
+  }
+  
+  button:disabled {
+    background: #d2d2d7;
+    color: #86868b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  
+  button:disabled:hover {
+    transform: none;
+  }
+  
+  /* Result Section */
+  #result {
+    margin-top: 30px;
+    min-height: 80px;
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Health Score Card */
+  .health-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin: 30px 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.04);
+    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .product-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+  
+  .health-score-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 30px;
+    border-radius: 18px;
+    margin: 24px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+  
+  .score-number {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -2px;
+  }
+  
+  .score-excellent { color: #34c759; }
+  .score-good { color: #ff9500; }
+  .score-poor { color: #ff3b30; }
+  
+  .recommendation {
+    font-size: 24px;
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 980px;
+    display: inline-block;
+  }
+  
+  .rec-buy {
+    background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(52, 199, 89, 0.3);
+  }
+  
+  .rec-caution {
+    background: linear-gradient(135deg, #ff9500 0%, #ff9f0a 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(255, 149, 0, 0.3);
+  }
+  
+  .rec-avoid {
+    background: linear-gradient(135deg, #ff3b30 0%, #ff453a 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(255, 59, 48, 0.3);
+  }
+  
+  .impact-section {
+    background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
+    padding: 28px;
+    border-radius: 18px;
+    margin: 24px 0;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  
+  .impact-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  
+  .stat-box {
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  
+  .stat-label {
+    font-size: 13px;
+    color: #86868b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-top: 8px;
+  }
+  
+  /* Comparison Table */
+  .comparison-section {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    margin: 30px 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+    animation: slideUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 28px;
+    letter-spacing: -0.5px;
+  }
+  
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+  
+  th {
+    background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+    color: white;
+    padding: 18px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+  
+  th:first-child {
+    border-top-left-radius: 14px;
+  }
+  
+  th:last-child {
+    border-top-right-radius: 14px;
+  }
+  
+  td {
+    padding: 16px;
+    border-bottom: 1px solid #f5f5f7;
+    background: white;
+  }
+  
+  tr:last-child td:first-child {
+    border-bottom-left-radius: 14px;
+  }
+  
+  tr:last-child td:last-child {
+    border-bottom-right-radius: 14px;
+  }
+  
+  tr:hover td {
+    background: #f9f9fb;
+  }
+  
+  .highlight-col {
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 168, 255, 0.05) 100%) !important;
+    font-weight: 600;
+  }
+  
+  /* Ingredients Section */
+  .ingredients-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin: 30px 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+    animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .ingredient-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  
+  .ingredient-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border-left: 4px solid;
     transition: all 0.3s ease;
   }
   
-  button:hover { transform: translateY(-2px); }
-  button:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
-  
-  .health-score {
-    font-size: 24px;
-    font-weight: bold;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 15px 0;
-    text-align: center;
+  .ingredient-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
   }
   
-  .score-excellent { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; }
-  .score-good { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; }
-  .score-poor { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+  .ingredient-natural { border-left-color: #34c759; }
+  .ingredient-sugar { border-left-color: #ff9500; }
+  .ingredient-fat { border-left-color: #00a8ff; }
+  .ingredient-spice { border-left-color: #af52de; }
   
-  .loading {
+  .ingredient-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  
+  .ingredient-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1d1d1f;
+  }
+  
+  .ingredient-badge {
+    background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
+    color: #1d1d1f;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .ingredient-impact {
+    color: #6e6e73;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  
+  /* Loading States */
+  .loading-spinner {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(0,0,0,0.1);
-    border-top: 3px solid #3498db;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 212, 170, 0.2);
+    border-top: 3px solid #00d4aa;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 10px;
+    animation: spin 0.8s linear infinite;
+    margin-right: 12px;
+    vertical-align: middle;
   }
   
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  
+  /* Status Messages */
+  .status-message {
+    text-align: center;
+    padding: 24px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .status-error {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+    color: #ff3b30;
+    border: 1px solid rgba(255, 59, 48, 0.2);
+  }
+  
+  .status-success {
+    background: linear-gradient(135deg, #f0fff4 0%, #e5ffe9 100%);
+    color: #34c759;
+    border: 1px solid rgba(52, 199, 89, 0.2);
+  }
+  
+  .status-info {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2ff 100%);
+    color: #00a8ff;
+    border: 1px solid rgba(0, 168, 255, 0.2);
+  }
+  
+  /* Barcode Display */
+  .barcode-display {
+    background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%);
+    color: white;
+    padding: 20px 32px;
+    border-radius: 16px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 2px;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 36px;
+    }
+    
+    .hero p {
+      font-size: 18px;
+    }
+    
+    .scanner-section {
+      padding: 24px;
+      margin: -30px 16px 24px;
+    }
+    
+    #scanner-container {
+      height: 300px;
+    }
+    
+    .product-title {
+      font-size: 24px;
+    }
+    
+    .score-number {
+      font-size: 42px;
+    }
+    
+    .recommendation {
+      font-size: 18px;
+    }
+    
+    .health-card,
+    .comparison-section,
+    .ingredients-section {
+      padding: 24px;
+    }
+    
+    .stat-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    th, td {
+      padding: 12px 8px;
+      font-size: 13px;
+    }
+  }
+  
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 60px 20px;
+    color: #86868b;
+    font-size: 14px;
+  }
+  
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .footer-links a {
+    color: #00a8ff;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  
+  .footer-links a:hover {
+    color: #00d4aa;
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>🌱 Smart Product Scanner</h1>
+<!-- Hero Section -->
+<div class="hero">
+  <h1>Know What You Eat.</h1>
+  <p>Scan any product. See the truth instantly.</p>
+</div>
 
-  <div id="scanner-container">
-    <video id="video" playsinline autoplay muted></video>
-    <canvas id="canvas"></canvas>
-    <div id="guide-box">
-      <div id="guide-text">🎯 Align barcode here</div>
+<!-- Scanner Section -->
+<div class="container">
+  <div class="scanner-section">
+    <div id="scanner-container">
+      <video id="video" playsinline autoplay muted></video>
+      <canvas id="canvas"></canvas>
+      <div id="guide-box">
+        <div id="guide-text">🎯 Align barcode here</div>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button id="startBtn" onclick="startScanner()" class="btn-primary">Start Scanner</button>
+      <button id="stopBtn" onclick="stopScanner()" class="btn-secondary" disabled>Stop Scanner</button>
+    </div>
+
+    <div id="result">
+      <div class="status-message status-info">
+        Ready to scan! Point your camera at any product barcode to see its health analysis.
+      </div>
     </div>
   </div>
+</div>
 
-  <div id="result">
-    <p>Ready to scan barcodes! Point your camera at any product barcode.</p>
-  </div>
-
-  <div style="text-align:center; margin-top:20px;">
-    <button id="startBtn" onclick="startScanner()">🚀 Start Scanner</button>
-    <button id="stopBtn" onclick="stopScanner()" disabled>⏹ Stop Scanner</button>
-    <button onclick="testBarcode()" style="background: #95a5a6;">🧪 Test with Sample</button>
+<!-- Footer -->
+<div class="footer">
+  <p>Making healthier choices, one scan at a time.</p>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
   </div>
 </div>
 
@@ -214,108 +688,57 @@ let isScanning = false, animationId = null, barcodeDetector = null;
 let lastDetectedBarcode = null;
 let detectionConfidence = 0;
 
-// 🔹 Setup Supabase
 const supabaseUrl = "https://fdfdxszvenmbdkmxkuej.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// 🔹 Barcode validation and formatting
 function validateAndFormatBarcode(rawBarcode, format) {
-    console.log('Raw barcode:', rawBarcode, 'Format:', format);
-    
-    // Remove any non-numeric characters
     let cleanBarcode = rawBarcode.replace(/[^0-9]/g, '');
     
-    // Handle different formats
     switch(format) {
         case 'ean_13':
-            if (cleanBarcode.length === 13) {
-                return cleanBarcode;
-            } else if (cleanBarcode.length === 12) {
-                // Convert UPC-A to EAN-13 by adding leading zero
-                return '0' + cleanBarcode;
-            }
+            if (cleanBarcode.length === 13) return cleanBarcode;
+            else if (cleanBarcode.length === 12) return '0' + cleanBarcode;
             break;
-            
         case 'ean_8':
-            if (cleanBarcode.length === 8) {
-                return cleanBarcode;
-            }
+            if (cleanBarcode.length === 8) return cleanBarcode;
             break;
-            
         case 'upc_a':
-            if (cleanBarcode.length === 12) {
-                return cleanBarcode;
-            } else if (cleanBarcode.length === 11) {
-                // Add check digit if missing
-                return cleanBarcode + calculateCheckDigit(cleanBarcode);
-            }
+            if (cleanBarcode.length === 12) return cleanBarcode;
             break;
-            
         case 'code_128':
         case 'code_39':
-            // These can contain letters, return as-is after basic cleanup
             return rawBarcode.trim();
     }
     
-    // If validation fails, return the cleaned numeric version
     return cleanBarcode;
 }
 
-// 🔹 Calculate UPC check digit
-function calculateCheckDigit(barcode) {
-    const digits = barcode.split('').map(Number);
-    let sum = 0;
-    
-    for (let i = 0; i < digits.length; i++) {
-        sum += digits[i] * (i % 2 === 0 ? 1 : 3);
-    }
-    
-    return ((10 - (sum % 10)) % 10).toString();
-}
-
-// 🔹 Check BarcodeDetector support
 async function checkBarcodeSupport() {
     if ('BarcodeDetector' in window) {
         try {
-            const formats = await BarcodeDetector.getSupportedFormats();
-            console.log('Supported formats:', formats);
+            await BarcodeDetector.getSupportedFormats();
             return true;
-        } catch (err) { 
-            console.error('BarcodeDetector error:', err);
-            return false; 
-        }
+        } catch (err) { return false; }
     }
     return false;
 }
 
-// 🔹 Init detector with multiple formats
 async function initBarcodeDetector() {
     try {
         barcodeDetector = new BarcodeDetector({
-            formats: [
-                'ean_13',      // Most common product barcodes
-                'ean_8',       // Short product barcodes
-                'upc_a',       // US product barcodes
-                'upc_e',       // Short US barcodes
-                'code_128',    // Industrial barcodes
-                'code_39',     // Common industrial format
-                'qr_code'      // QR codes
-            ]
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
         });
-        console.log('BarcodeDetector initialized with multiple formats');
         return true;
     } catch (err) { 
-        console.error('Failed to create BarcodeDetector:', err);
+        console.error('BarcodeDetector error:', err);
         return false; 
     }
 }
 
-// 🔹 Start scanner
 async function startScanner() {
     if (isScanning) return;
     
-    // Reset detection state
     lastDetectedBarcode = null;
     detectionConfidence = 0;
     
@@ -326,20 +749,22 @@ async function startScanner() {
     const hasSupport = await checkBarcodeSupport();
     if (!hasSupport) {
         document.getElementById('result').innerHTML = `
-            <div class="error">❌ Barcode Detection API not supported in this browser</div>
-            <p>Try using Chrome or Edge on Android, or enable "Experimental Web Platform features" in chrome://flags</p>
+            <div class="status-message status-error">
+                ❌ Barcode Detection not supported in this browser.<br>
+                Try Chrome or Edge on Android.
+            </div>
         `;
         return;
     }
     
     const detectorReady = await initBarcodeDetector();
     if (!detectorReady) {
-        document.getElementById('result').innerHTML = '<div class="error">❌ Failed to initialize barcode detector</div>';
+        document.getElementById('result').innerHTML = '<div class="status-message status-error">❌ Failed to initialize scanner</div>';
         return;
     }
 
     try {
-        document.getElementById('result').innerHTML = '<div class="info"><span class="loading"></span>Starting camera...</div>';
+        document.getElementById('result').innerHTML = '<div class="status-message status-info"><span class="loading-spinner"></span>Starting camera...</div>';
         
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
@@ -357,17 +782,16 @@ async function startScanner() {
             isScanning = true;
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
-            document.getElementById('result').innerHTML = '<div class="success">📱 Scanner active! Align barcode in the green box</div>';
+            document.getElementById('result').innerHTML = '<div class="status-message status-success">📱 Scanner active! Point at a barcode</div>';
             scanLoop();
         };
         
     } catch (err) {
         console.error('Camera error:', err);
-        document.getElementById('result').innerHTML = `<div class="error">❌ Camera error: ${err.message}</div>`;
+        document.getElementById('result').innerHTML = `<div class="status-message status-error">❌ Camera access denied</div>`;
     }
 }
 
-// 🔹 Scanning loop with confidence checking
 async function scanLoop() {
     if (!isScanning) return;
     
@@ -379,10 +803,9 @@ async function scanLoop() {
                 const barcode = barcodes[0];
                 const formattedBarcode = validateAndFormatBarcode(barcode.rawValue, barcode.format);
                 
-                // Confidence checking - same barcode detected multiple times
                 if (lastDetectedBarcode === formattedBarcode) {
                     detectionConfidence++;
-                    if (detectionConfidence >= 3) { // Require 3 consistent detections
+                    if (detectionConfidence >= 3) {
                         onBarcodeDetected(barcode, formattedBarcode);
                         return;
                     }
@@ -391,37 +814,34 @@ async function scanLoop() {
                     detectionConfidence = 1;
                 }
                 
-                // Visual feedback for detection
                 drawDetectionBox(barcode);
                 document.getElementById('result').innerHTML = `
-                    <div class="info">🎯 Detecting: ${formattedBarcode} (${detectionConfidence}/3)</div>
+                    <div class="status-message status-info">
+                        🎯 Detecting: ${formattedBarcode} (${detectionConfidence}/3)
+                    </div>
                 `;
             }
         } catch (err) { 
-            console.error('Barcode detection error:', err); 
+            console.error('Detection error:', err); 
         }
     }
     
     animationId = requestAnimationFrame(scanLoop);
 }
 
-// 🔹 Draw detection box
 function drawDetectionBox(barcode) {
     if (!context) return;
     
     context.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw bounding box
-    context.strokeStyle = '#4CAF50';
+    context.strokeStyle = '#00d4aa';
     context.lineWidth = 4;
     context.setLineDash([]);
     
     const box = barcode.boundingBox;
     context.strokeRect(box.x, box.y, box.width, box.height);
     
-    // Draw corner points if available
     if (barcode.cornerPoints && barcode.cornerPoints.length === 4) {
-        context.fillStyle = '#4CAF50';
+        context.fillStyle = '#00d4aa';
         barcode.cornerPoints.forEach(point => {
             context.beginPath();
             context.arc(point.x, point.y, 6, 0, 2 * Math.PI);
@@ -430,37 +850,23 @@ function drawDetectionBox(barcode) {
     }
 }
 
-// 🔹 On barcode detected with validation
 async function onBarcodeDetected(barcode, formattedBarcode) {
     stopScanner();
-    
-    // Play success sound
     playSuccessSound();
     
     document.getElementById('result').innerHTML = `
-        <div class="success">✅ Barcode Detected Successfully!</div>
-        <div class="detected-code">${formattedBarcode}</div>
-        <div class="barcode-info">
-            <strong>Format:</strong> ${barcode.format.toUpperCase()}<br>
-            <strong>Raw Value:</strong> ${barcode.rawValue}<br>
-            <strong>Processed:</strong> ${formattedBarcode}
+        <div class="status-message status-success">
+            ✅ Barcode Detected!
         </div>
-        <div class="info"><span class="loading"></span>Fetching product information...</div>
+        <div class="barcode-display">${formattedBarcode}</div>
+        <div class="status-message status-info">
+            <span class="loading-spinner"></span>Loading product information...
+        </div>
     `;
     
-    // Fetch product info
     await fetchProductInfo(formattedBarcode);
 }
 
-// 🔹 Test function for development
-function testBarcode() {
-    onBarcodeDetected(
-        { rawValue: '8901030895931', format: 'ean_13' }, 
-        '8901030895931'
-    );
-}
-
-// 🔹 Play success sound
 function playSuccessSound() {
     try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -469,24 +875,16 @@ function playSuccessSound() {
         
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.value = 800;
         oscillator.type = 'sine';
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.3);
-    } catch (e) {
-        console.log('Audio not available');
-    }
+    } catch (e) {}
 }
 
-// 🔹 Fetch product + competitors from Supabase
 async function fetchProductInfo(barcodeValue) {
     try {
-        console.log('Searching for barcode:', barcodeValue);
-        
-        // Get main product
         const { data: mainProduct, error } = await supabase
             .from('products')
             .select('*')
@@ -494,123 +892,131 @@ async function fetchProductInfo(barcodeValue) {
             .single();
 
         if (error || !mainProduct) {
-            console.error('Product search error:', error);
-            document.getElementById('result').innerHTML += `
-                <div class="error">❌ Product not found in database</div>
-                <p>Barcode: <code>${barcodeValue}</code> is not in our product catalog yet.</p>
-                <button onclick="startScanner()">🔄 Scan Another Product</button>
+            document.getElementById('result').innerHTML = `
+                <div class="status-message status-error">
+                    ❌ Product not found in our database
+                    <div style="margin-top: 16px; font-size: 14px;">
+                        Barcode: <code>${barcodeValue}</code>
+                    </div>
+                </div>
+                <div class="button-group" style="margin-top: 24px;">
+                    <button onclick="startScanner()" class="btn-primary">🔄 Scan Another</button>
+                </div>
             `;
             return;
         }
 
-        console.log('Found product:', mainProduct);
-
-        // Get competitor IDs for this product
-        const { data: competitorMapping, error: compMappingError } = await supabase
+        const { data: competitorMapping } = await supabase
             .from('competitors')
             .select('*')
             .eq('product_id', mainProduct.product_id)
             .single();
 
         let competitors = [];
-        if (competitorMapping && !compMappingError) {
-            // Get competitor product details
+        if (competitorMapping) {
             const competitorIds = [
                 competitorMapping.competitor_1,
                 competitorMapping.competitor_2,
                 competitorMapping.competitor_3
-            ].filter(id => id); // Remove null/empty values
+            ].filter(id => id);
 
             if (competitorIds.length > 0) {
-                const { data: competitorProducts, error: compError } = await supabase
+                const { data: competitorProducts } = await supabase
                     .from('products')
                     .select('*')
                     .in('product_id', competitorIds);
-
-                if (!compError) {
-                    competitors = competitorProducts || [];
-                }
+                competitors = competitorProducts || [];
             }
         }
 
-        // Get ingredients for main product
-        const { data: ingredients, error: ingredientsError } = await supabase
+        const { data: ingredients } = await supabase
             .from('ingredients')
             .select('*')
             .eq('product_id', mainProduct.product_id);
-
-        if (ingredientsError) {
-            console.error('Ingredients error:', ingredientsError);
-        }
 
         displayProduct(mainProduct, competitors, ingredients || []);
         
     } catch (err) {
         console.error('Database error:', err);
-        document.getElementById('result').innerHTML += `
-            <div class="error">❌ Database connection error</div>
-            <p>Please check your internet connection and try again.</p>
+        document.getElementById('result').innerHTML = `
+            <div class="status-message status-error">
+                ❌ Connection error. Please check your internet.
+            </div>
         `;
     }
 }
 
-// 🔹 Display product info + comparison (Updated for your exact table structure)
 function displayProduct(product, competitors, ingredients) {
     const healthScore = product.health_score || 0;
     let recommendation = '❌ AVOID';
-    let recommendationClass = 'score-poor';
+    let recClass = 'rec-avoid';
+    let scoreClass = 'score-poor';
     
     if (healthScore >= 70) {
         recommendation = '✅ BUY';
-        recommendationClass = 'score-excellent';
+        recClass = 'rec-buy';
+        scoreClass = 'score-excellent';
     } else if (healthScore >= 50) {
         recommendation = '⚠️ CAUTION';
-        recommendationClass = 'score-good';
+        recClass = 'rec-caution';
+        scoreClass = 'score-good';
     }
     
-    // SECTION 1: Health Score & Recommendation (matching your mockup exactly)
     let html = `
-        <div style="border: 2px solid #ddd; border-radius: 15px; padding: 25px; margin: 20px 0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 22px;">📦 ${product.name} (${product.weight_g}g)</h2>
+        <div class="health-card">
+            <div class="product-title">${product.name}</div>
             
-            <div class="health-score ${recommendationClass}" style="margin: 15px 0;">
-                Health Score: ${healthScore} / 100 
-                <div style="font-size: 20px; margin-top: 8px;">${recommendation}</div>
+            <div class="health-score-display">
+                <div>
+                    <div style="font-size: 14px; color: #86868b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Health Score</div>
+                    <div class="score-number ${scoreClass}">${healthScore}<span style="font-size: 28px; color: #86868b;">/100</span></div>
+                </div>
+                <div class="recommendation ${recClass}">${recommendation}</div>
             </div>
             
-            <div style="background: white; padding: 20px; border-radius: 12px; margin: 15px 0; border-left: 5px solid #3498db;">
-                <h3 style="margin: 0 0 10px 0; color: #2c3e50;">💡 Impact:</h3>
-                <div style="color: #34495e; line-height: 1.6;">
+            <div class="impact-section">
+                <div class="impact-title">
+                    <span>💡</span>
+                    <span>Health Analysis</span>
+                </div>
+                <div style="color: #1d1d1f; line-height: 1.6; font-size: 15px;">
                     ${product.health_analysis || 'No detailed analysis available'}
                 </div>
-                ${getHealthImpactDetails(product, ingredients)}
+                ${getHealthImpactDetails(product)}
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
-                <div><strong>💰 Price:</strong> ₹${product.price}</div>
-                <div><strong>📏 Weight:</strong> ${product.weight_g}g</div>
-                <div><strong>🔥 Calories:</strong> ${product.calories} kcal</div>
+            <div class="stat-row">
+                <div class="stat-box">
+                    <div class="stat-label">Weight</div>
+                    <div class="stat-value">${product.weight_g}g</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Price</div>
+                    <div class="stat-value">₹${product.price}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Calories</div>
+                    <div class="stat-value">${product.calories}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Protein</div>
+                    <div class="stat-value">${product.protein || '0g'}</div>
+                </div>
             </div>
         </div>
     `;
 
-    // SECTION 2: Competitor Comparison Table (matching your exact format)
     if (competitors.length > 0) {
         html += `
-            <div style="border: 2px solid #ddd; border-radius: 15px; padding: 25px; margin: 20px 0; background: white;">
-                <h3 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 20px;">🔍 Competitor Comparison</h3>
-                
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <div class="comparison-section">
+                <div class="section-title">🔍 Competitor Comparison</div>
+                <div class="table-wrapper">
+                    <table>
                         <thead>
-                            <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                                <th style="padding: 12px 8px; text-align: left; border: 1px solid #ddd;">Component / Feature</th>
-                                <th style="padding: 12px 8px; text-align: center; border: 1px solid #ddd; background: rgba(255,255,255,0.1);">
-                                    <strong>${product.name}</strong>
-                                </th>
-                                ${competitors.map(comp => 
-                                    `<th style="padding: 12px 8px; text-align: center; border: 1px solid #ddd;">${comp.name}</th>`
-                                ).join('')}
+                            <tr>
+                                <th style="text-align: left;">Feature</th>
+                                <th style="text-align: center; background: rgba(255,255,255,0.2);">${product.name}</th>
+                                ${competitors.map(c => `<th style="text-align: center;">${c.name}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody>
@@ -622,23 +1028,18 @@ function displayProduct(product, competitors, ingredients) {
         `;
     }
 
-    // SECTION 3: Detailed Ingredients (bonus section)
     if (ingredients.length > 0) {
         html += `
-            <div style="border: 2px solid #ddd; border-radius: 15px; padding: 25px; margin: 20px 0; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
-                <h3 style="margin: 0 0 20px 0; color: #2c3e50;">🧪 Ingredient Analysis</h3>
-                <div style="display: grid; gap: 12px;">
+            <div class="ingredients-section">
+                <div class="section-title">🧪 Ingredient Breakdown</div>
+                <div class="ingredient-grid">
                     ${ingredients.map(ing => `
-                        <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid ${getIngredientColor(ing.type)}; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                                <div>
-                                    <strong style="color: #2c3e50;">${ing.name}</strong>
-                                    <span style="background: ${getIngredientBadgeColor(ing.type)}; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">
-                                        ${ing.type}
-                                    </span>
-                                </div>
+                        <div class="ingredient-card ${getIngredientClass(ing.type)}">
+                            <div class="ingredient-header">
+                                <div class="ingredient-name">${ing.name}</div>
+                                <div class="ingredient-badge">${ing.type}</div>
                             </div>
-                            <div style="color: #7f8c8d; font-size: 13px; margin-top: 8px; line-height: 1.4;">
+                            <div class="ingredient-impact">
                                 ${ing.impact || 'Benefits not specified'}
                             </div>
                         </div>
@@ -648,24 +1049,22 @@ function displayProduct(product, competitors, ingredients) {
         `;
     }
 
-    // Action buttons
     html += `
-        <div style="text-align: center; margin: 30px 0; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="startScanner()" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); flex: 1; max-width: 200px;">
-                🔄 Scan Another Product
-            </button>
-            <button onclick="shareResults('${product.name}', ${healthScore})" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); flex: 1; max-width: 200px;">
-                📤 Share Results
-            </button>
+        <div class="button-group" style="margin-top: 40px;">
+            <button onclick="startScanner()" class="btn-primary">🔄 Scan Another Product</button>
+            <button onclick="shareResults('${product.name}', ${healthScore})" class="btn-secondary">📤 Share Results</button>
         </div>
     `;
 
     document.getElementById('result').innerHTML = html;
+    
+    setTimeout(() => {
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
-// Helper function to generate comparison rows
 function generateComparisonRows(mainProduct, competitors) {
-    const comparisonFeatures = [
+    const features = [
         { key: 'calories', label: 'Calories', unit: 'kcal' },
         { key: 'protein', label: 'Protein', unit: '' },
         { key: 'fiber', label: 'Fiber', unit: '' },
@@ -673,16 +1072,17 @@ function generateComparisonRows(mainProduct, competitors) {
         { key: 'sugar', label: 'Sugar Content', unit: '' },
         { key: 'artificial_colors', label: 'Artificial Colors', unit: '' },
         { key: 'preservatives', label: 'Preservatives', unit: '' },
-        { key: 'emulsifiers', label: 'Emulsifiers/Additives', unit: '' },
+        { key: 'emulsifiers', label: 'Emulsifiers', unit: '' },
         { key: 'additive_load', label: 'Additive Load', unit: '' },
-        { key: 'health_score', label: 'Overall Health Score', unit: '/100' }
+        { key: 'health_score', label: 'Health Score', unit: '/100' }
     ];
 
-    return comparisonFeatures.map(feature => {
+    return features.map((feature, index) => {
         let mainValue = mainProduct[feature.key] || 'None';
+        
         if (feature.key === 'health_score') {
             mainValue = getHealthScoreDisplay(mainProduct[feature.key]);
-        } else if ((feature.key === 'artificial_colors' || feature.key === 'preservatives' || feature.key === 'emulsifiers') && !mainValue) {
+        } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !mainValue) {
             mainValue = '✅ None';
         }
 
@@ -690,109 +1090,99 @@ function generateComparisonRows(mainProduct, competitors) {
             let value = comp[feature.key] || 'None';
             if (feature.key === 'health_score') {
                 value = getHealthScoreDisplay(comp[feature.key]);
-            } else if ((feature.key === 'artificial_colors' || feature.key === 'preservatives' || feature.key === 'emulsifiers') && !value) {
+            } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !value) {
                 value = '✅ None';
             }
-            return `<td style="padding: 10px 8px; border: 1px solid #ddd; text-align: center;">${value} ${feature.unit}</td>`;
+            return `<td style="text-align: center;">${value} ${feature.unit}</td>`;
         }).join('');
 
+        const rowStyle = index % 2 === 0 ? 'background: #fafafa;' : '';
+        
         return `
-            <tr style="background: ${feature.key === 'health_score' ? '#f8f9fa' : 'white'};">
-                <td style="padding: 10px 8px; border: 1px solid #ddd; font-weight: bold; background: #f8f9fa;">
-                    ${feature.label}
-                </td>
-                <td style="padding: 10px 8px; border: 1px solid #ddd; text-align: center; background: rgba(39, 174, 96, 0.1); font-weight: bold;">
-                    ${mainValue} ${feature.unit}
-                </td>
+            <tr style="${rowStyle}">
+                <td style="font-weight: 600; color: #1d1d1f;">${feature.label}</td>
+                <td class="highlight-col" style="text-align: center; font-weight: 700;">${mainValue} ${feature.unit}</td>
                 ${competitorValues}
             </tr>
         `;
     }).join('');
 }
 
-// Helper function to get health impact details
-function getHealthImpactDetails(product, ingredients) {
-    let details = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ecf0f1;">';
+function getHealthImpactDetails(product) {
+    let details = '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06);">';
     
-    // Positive aspects
     let positives = [];
-    if (product.fiber && product.fiber !== '0') positives.push(`High fiber content (${product.fiber})`);
-    if (product.protein && product.protein !== '0') positives.push(`Good protein source (${product.protein})`);
+    if (product.fiber && product.fiber !== '0') positives.push(`High fiber (${product.fiber})`);
+    if (product.protein && product.protein !== '0') positives.push(`Good protein (${product.protein})`);
     if (!product.artificial_colors) positives.push('No artificial colors');
     if (!product.preservatives) positives.push('No preservatives');
-    if (product.additive_load === 0) positives.push('Zero additive load');
+    if (product.additive_load === 0) positives.push('Zero additives');
     
     if (positives.length > 0) {
-        details += '<div style="color: #27ae60; margin-bottom: 10px;"><strong>✅ Positive aspects:</strong><br>';
-        details += positives.map(p => `• ${p}`).join('<br>');
-        details += '</div>';
+        details += '<div style="margin-bottom: 16px;">';
+        details += '<div style="font-weight: 700; color: #34c759; margin-bottom: 8px;">✅ What\'s Good</div>';
+        details += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+        positives.forEach(p => {
+            details += `<span style="background: #f0fff4; color: #34c759; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">${p}</span>`;
+        });
+        details += '</div></div>';
     }
     
-    // Areas of concern
     let concerns = [];
-    if (product.sugar && product.sugar.includes('tsp') && parseInt(product.sugar) > 3) {
-        concerns.push(`High sugar content (${product.sugar})`);
+    if (product.sugar && product.sugar.includes('tsp')) {
+        const tsp = parseInt(product.sugar);
+        if (tsp > 3) concerns.push(`High sugar (${product.sugar})`);
     }
-    if (product.artificial_colors) concerns.push(`Contains artificial colors: ${product.artificial_colors}`);
-    if (product.preservatives) concerns.push(`Contains preservatives: ${product.preservatives}`);
-    if (product.additive_load > 5) concerns.push(`High additive load (${product.additive_load} additives)`);
+    if (product.artificial_colors) concerns.push(`Artificial colors: ${product.artificial_colors}`);
+    if (product.preservatives) concerns.push(`Preservatives: ${product.preservatives}`);
+    if (product.additive_load > 5) concerns.push(`${product.additive_load} additives`);
     
     if (concerns.length > 0) {
-        details += '<div style="color: #e74c3c; margin-bottom: 10px;"><strong>⚠️ Areas of concern:</strong><br>';
-        details += concerns.map(c => `• ${c}`).join('<br>');
-        details += '</div>';
+        details += '<div>';
+        details += '<div style="font-weight: 700; color: #ff3b30; margin-bottom: 8px;">⚠️ Watch Out For</div>';
+        details += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+        concerns.forEach(c => {
+            details += `<span style="background: #fff5f5; color: #ff3b30; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">${c}</span>`;
+        });
+        details += '</div></div>';
     }
     
     details += '</div>';
     return details;
 }
 
-// Helper function to get health score display with emoji
 function getHealthScoreDisplay(score) {
-    if (score >= 70) return `${score} ✅`;
-    if (score >= 50) return `${score} ⚠️`;
-    return `${score} ❌`;
+    if (score >= 70) return `<span style="color: #34c759; font-weight: 700;">${score} ✅</span>`;
+    if (score >= 50) return `<span style="color: #ff9500; font-weight: 700;">${score} ⚠️</span>`;
+    return `<span style="color: #ff3b30; font-weight: 700;">${score} ❌</span>`;
 }
 
-// Helper functions for ingredient styling
-function getIngredientColor(type) {
-    switch(type.toLowerCase()) {
-        case 'natural': return '#27ae60';
-        case 'natural sugar': return '#f39c12';
-        case 'healthy fat': return '#3498db';
-        case 'spice': return '#9b59b6';
-        default: return '#95a5a6';
-    }
+function getIngredientClass(type) {
+    const typeMap = {
+        'natural': 'ingredient-natural',
+        'natural sugar': 'ingredient-sugar',
+        'healthy fat': 'ingredient-fat',
+        'spice': 'ingredient-spice'
+    };
+    return typeMap[type.toLowerCase()] || 'ingredient-natural';
 }
 
-function getIngredientBadgeColor(type) {
-    switch(type.toLowerCase()) {
-        case 'natural': return '#27ae60';
-        case 'natural sugar': return '#f39c12';
-        case 'healthy fat': return '#3498db';
-        case 'spice': return '#9b59b6';
-        default: return '#95a5a6';
-    }
-}
-
-// Share function
 function shareResults(productName, healthScore) {
+    const text = `Just scanned ${productName} - Health Score: ${healthScore}/100`;
+    
     if (navigator.share) {
         navigator.share({
             title: `${productName} Health Analysis`,
-            text: `Just scanned ${productName} - Health Score: ${healthScore}/100`,
+            text: text,
             url: window.location.href
         });
     } else {
-        // Fallback - copy to clipboard
-        const shareText = `Just scanned ${productName} - Health Score: ${healthScore}/100`;
-        navigator.clipboard.writeText(shareText).then(() => {
-            alert('Results copied to clipboard!');
+        navigator.clipboard.writeText(text).then(() => {
+            alert('✅ Results copied to clipboard!');
         });
     }
 }
 
-// 🔹 Stop scanner
 function stopScanner() {
     isScanning = false;
     lastDetectedBarcode = null;
@@ -813,19 +1203,11 @@ function stopScanner() {
     }
     
     document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = false;
 }
 
-// 🔹 Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-    if (isScanning) {
-        stopScanner();
-    }
-});
-
-// 🔹 Initialize on load
-window.addEventListener('load', () => {
-    console.log('Smart barcode scanner loaded');
+    if (isScanning) stopScanner();
 });
 </script>
 
