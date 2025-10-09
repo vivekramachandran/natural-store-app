@@ -928,4 +928,531 @@ let lastDetectedBarcode = null;
 let detectionConfidence = 0;
 
 const supabaseUrl = "https://fdfdxszvenmbdkmxkuej.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+function validateAndFormatBarcode(rawBarcode, format) {
+    let cleanBarcode = rawBarcode.replace(/[^0-9]/g, '');
+    
+    switch(format) {
+        case 'ean_13':
+            if (cleanBarcode.length === 13) return cleanBarcode;
+            else if (cleanBarcode.length === 12) return '0' + cleanBarcode;
+            break;
+        case 'ean_8':
+            if (cleanBarcode.length === 8) return cleanBarcode;
+            break;
+        case 'upc_a':
+            if (cleanBarcode.length === 12) return cleanBarcode;
+            break;
+        case 'code_128':
+        case 'code_39':
+            return rawBarcode.trim();
+    }
+    
+    return cleanBarcode;
+}
+
+async function checkBarcodeSupport() {
+    if ('BarcodeDetector' in window) {
+        try {
+            await BarcodeDetector.getSupportedFormats();
+            return true;
+        } catch (err) { return false; }
+    }
+    return false;
+}
+
+async function initBarcodeDetector() {
+    try {
+        barcodeDetector = new BarcodeDetector({
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
+        });
+        return true;
+    } catch (err) { 
+        console.error('BarcodeDetector error:', err);
+        return false; 
+    }
+}
+
+async function startScanner() {
+    if (isScanning) return;
+    
+    lastDetectedBarcode = null;
+    detectionConfidence = 0;
+    
+    video = document.getElementById('video');
+    canvas = document.getElementById('canvas');
+    context = canvas.getContext('2d');
+
+    const hasSupport = await checkBarcodeSupport();
+    if (!hasSupport) {
+        document.getElementById('result').innerHTML = `
+            <div class="status-message status-error">
+                Barcode Detection not supported in this browser. Please try Chrome or Edge on Android.
+            </div>
+        `;
+        return;
+    }
+    
+    const detectorReady = await initBarcodeDetector();
+    if (!detectorReady) {
+        document.getElementById('result').innerHTML = '<div class="status-message status-error">Failed to initialize scanner</div>';
+        return;
+    }
+
+    try {
+        document.getElementById('result').innerHTML = '<div class="status-message status-info"><span class="loading-spinner"></span>Starting camera...</div>';
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 }
+            } 
+        });
+        
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            isScanning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('result').innerHTML = '<div class="status-message status-success">Scanner active. Position barcode in frame.</div>';
+            scanLoop();
+        };
+        
+    } catch (err) {
+        console.error('Camera error:', err);
+        document.getElementById('result').innerHTML = `<div class="status-message status-error">Camera access denied. Please enable camera permissions.</div>`;
+    }
+}
+
+async function scanLoop() {
+    if (!isScanning) return;
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        try {
+            const barcodes = await barcodeDetector.detect(video);
+            
+            if (barcodes.length > 0) {
+                const barcode = barcodes[0];
+                const formattedBarcode = validateAndFormatBarcode(barcode.rawValue, barcode.format);
+                
+                if (lastDetectedBarcode === formattedBarcode) {
+                    detectionConfidence++;
+                    if (detectionConfidence >= 3) {
+                        onBarcodeDetected(barcode, formattedBarcode);
+                        return;
+                    }
+                } else {
+                    lastDetectedBarcode = formattedBarcode;
+                    detectionConfidence = 1;
+                }
+                
+                drawDetectionBox(barcode);
+                document.getElementById('result').innerHTML = `
+                    <div class="status-message status-info">
+                        Detecting: ${formattedBarcode} (${detectionConfidence}/3)
+                    </div>
+                `;
+            }
+        } catch (err) { 
+            console.error('Detection error:', err); 
+        }
+    }
+    
+    animationId = requestAnimationFrame(scanLoop);
+}
+
+function drawDetectionBox(barcode) {
+    if (!context) return;
+    
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.strokeStyle = '#c9a961';
+    context.lineWidth = 3;
+    context.setLineDash([]);
+    
+    const box = barcode.boundingBox;
+    context.strokeRect(box.x, box.y, box.width, box.height);
+    
+    if (barcode.cornerPoints && barcode.cornerPoints.length === 4) {
+        context.fillStyle = '#c9a961';
+        barcode.cornerPoints.forEach(point => {
+            context.beginPath();
+            context.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+            context.fill();
+        });
+    }
+}
+
+async function onBarcodeDetected(barcode, formattedBarcode) {
+    stopScanner();
+    playSuccessSound();
+    
+    document.getElementById('result').innerHTML = `
+        <div class="status-message status-success">
+            Barcode Successfully Detected
+        </div>
+        <div class="barcode-display">${formattedBarcode}</div>
+        <div class="status-message status-info">
+            <span class="loading-spinner"></span>Retrieving product information...
+        </div>
+    `;
+    
+    await fetchProductInfo(formattedBarcode);
+}
+
+function playSuccessSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {}
+}
+
+async function fetchProductInfo(barcodeValue) {
+    try {
+        const { data: mainProduct, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('barcode', barcodeValue)
+            .single();
+
+        if (error || !mainProduct) {
+            document.getElementById('result').innerHTML = `
+                <div class="status-message status-error">
+                    Product not found in our database
+                    <div style="margin-top: 16px; font-size: 12px; letter-spacing: 1px;">
+                        Barcode: <code>${barcodeValue}</code>
+                    </div>
+                </div>
+                <div class="button-group" style="margin-top: 24px;">
+                    <button onclick="startScanner()" class="btn-primary">Scan Another</button>
+                </div>
+            `;
+            return;
+        }
+
+        const { data: competitorMapping } = await supabase
+            .from('competitors')
+            .select('*')
+            .eq('product_id', mainProduct.product_id)
+            .single();
+
+        let competitors = [];
+        if (competitorMapping) {
+            const competitorIds = [
+                competitorMapping.competitor_1,
+                competitorMapping.competitor_2,
+                competitorMapping.competitor_3
+            ].filter(id => id);
+
+            if (competitorIds.length > 0) {
+                const { data: competitorProducts } = await supabase
+                    .from('products')
+                    .select('*')
+                    .in('product_id', competitorIds);
+                competitors = competitorProducts || [];
+            }
+        }
+
+        const { data: ingredients } = await supabase
+            .from('ingredients')
+            .select('*')
+            .eq('product_id', mainProduct.product_id);
+
+        displayProduct(mainProduct, competitors, ingredients || []);
+        
+    } catch (err) {
+        console.error('Database error:', err);
+        document.getElementById('result').innerHTML = `
+            <div class="status-message status-error">
+                Connection error. Please check your internet connection.
+            </div>
+        `;
+    }
+}
+
+function displayProduct(product, competitors, ingredients) {
+    const healthScore = product.health_score || 0;
+    let recommendation = 'Not Recommended';
+    let recClass = 'rec-avoid';
+    let scoreClass = 'score-poor';
+    
+    if (healthScore >= 70) {
+        recommendation = 'Recommended';
+        recClass = 'rec-buy';
+        scoreClass = 'score-excellent';
+    } else if (healthScore >= 50) {
+        recommendation = 'Consider Carefully';
+        recClass = 'rec-caution';
+        scoreClass = 'score-good';
+    }
+    
+    let html = `
+        <div class="health-card">
+            <div class="product-header">
+                <div class="product-title">${product.name}</div>
+                <div class="product-subtitle">Comprehensive Nutritional Analysis</div>
+            </div>
+            
+            <div class="health-score-display">
+                <div class="score-section">
+                    <div class="score-label">Health Score</div>
+                    <div class="score-number ${scoreClass}">${healthScore}<span style="font-size: 28px; color: var(--silver); font-weight: 300;">/100</span></div>
+                </div>
+                <div class="recommendation ${recClass}">${recommendation}</div>
+            </div>
+            
+            <div class="certification-bar">
+                <div class="cert-item">Nutritionist Verified</div>
+                <div class="cert-item">Lab Tested</div>
+                <div class="cert-item">Full Transparency</div>
+            </div>
+            
+            <div class="impact-section">
+                <div class="impact-title">Expert Analysis</div>
+                <div class="impact-content">
+                    ${product.health_analysis || 'Comprehensive nutritional data available upon request.'}
+                </div>
+            </div>
+            
+            ${getHealthImpactDetails(product)}
+            
+            <div class="divider"></div>
+            
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Weight</div>
+                    <div class="stat-value">${product.weight_g}g</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Price</div>
+                    <div class="stat-value">₹${product.price}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Calories</div>
+                    <div class="stat-value">${product.calories}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Protein</div>
+                    <div class="stat-value">${product.protein || '0g'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (competitors.length > 0) {
+        html += `
+            <div class="comparison-section">
+                <div class="section-title">Competitor Analysis</div>
+                <div class="section-subtitle">How this product compares to similar offerings</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th style="background: var(--accent);">${product.name}</th>
+                                ${competitors.map(c => `<th>${c.name}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${generateComparisonRows(product, competitors)}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    if (ingredients.length > 0) {
+        html += `
+            <div class="ingredients-section">
+                <div class="section-title">Ingredient Provenance</div>
+                <div class="section-subtitle">Complete transparency on what you consume</div>
+                <div class="ingredient-grid">
+                    ${ingredients.map(ing => `
+                        <div class="ingredient-card ${getIngredientClass(ing.type)}">
+                            <div class="ingredient-header">
+                                <div class="ingredient-name">${ing.name}</div>
+                                <div class="ingredient-badge">${ing.type}</div>
+                            </div>
+                            <div class="ingredient-impact">
+                                ${ing.impact || 'Benefits not specified'}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    html += `
+        <div class="button-group" style="margin-top: 60px;">
+            <button onclick="startScanner()" class="btn-primary">Analyze Another Product</button>
+            <button onclick="shareResults('${product.name}', ${healthScore})" class="btn-secondary">Share Analysis</button>
+        </div>
+    `;
+
+    document.getElementById('result').innerHTML = html;
+    
+    setTimeout(() => {
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
+function generateComparisonRows(mainProduct, competitors) {
+    const features = [
+        { key: 'calories', label: 'Calories', unit: 'kcal' },
+        { key: 'protein', label: 'Protein', unit: '' },
+        { key: 'fiber', label: 'Fiber', unit: '' },
+        { key: 'fat', label: 'Fat Source', unit: '' },
+        { key: 'sugar', label: 'Sugar Content', unit: '' },
+        { key: 'artificial_colors', label: 'Artificial Colors', unit: '' },
+        { key: 'preservatives', label: 'Preservatives', unit: '' },
+        { key: 'emulsifiers', label: 'Emulsifiers', unit: '' },
+        { key: 'additive_load', label: 'Additive Load', unit: '' },
+        { key: 'health_score', label: 'Health Score', unit: '/100' }
+    ];
+
+    return features.map((feature, index) => {
+        let mainValue = mainProduct[feature.key] || 'None';
+        
+        if (feature.key === 'health_score') {
+            mainValue = getHealthScoreDisplay(mainProduct[feature.key]);
+        } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !mainValue) {
+            mainValue = 'None';
+        }
+
+        const competitorValues = competitors.map(comp => {
+            let value = comp[feature.key] || 'None';
+            if (feature.key === 'health_score') {
+                value = getHealthScoreDisplay(comp[feature.key]);
+            } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !value) {
+                value = 'None';
+            }
+            return `<td style="text-align: center;">${value} ${feature.unit}</td>`;
+        }).join('');
+
+        return `
+            <tr>
+                <td style="font-weight: 500; color: var(--forest);">${feature.label}</td>
+                <td class="highlight-col" style="text-align: center;">${mainValue} ${feature.unit}</td>
+                ${competitorValues}
+            </tr>
+        `;
+    }).join('');
+}
+
+function getHealthImpactDetails(product) {
+    let details = '<div class="quality-grid">';
+    
+    let positives = [];
+    if (product.fiber && product.fiber !== '0') positives.push(`High fiber content (${product.fiber})`);
+    if (product.protein && product.protein !== '0') positives.push(`Quality protein source (${product.protein})`);
+    if (!product.artificial_colors) positives.push('No artificial colorants');
+    if (!product.preservatives) positives.push('Preservative-free formulation');
+    if (product.additive_load === 0) positives.push('Zero synthetic additives');
+    
+    if (positives.length > 0) {
+        details += '<div class="quality-card">';
+        details += '<div class="quality-header quality-positive">Quality Indicators</div>';
+        details += '<ul class="quality-list">';
+        positives.forEach(p => {
+            details += `<li>${p}</li>`;
+        });
+        details += '</ul></div>';
+    }
+    
+    let concerns = [];
+    if (product.sugar && product.sugar.includes('tsp')) {
+        const tsp = parseInt(product.sugar);
+        if (tsp > 3) concerns.push(`Elevated sugar content (${product.sugar})`);
+    }
+    if (product.artificial_colors) concerns.push(`Contains artificial colors: ${product.artificial_colors}`);
+    if (product.preservatives) concerns.push(`Preservatives present: ${product.preservatives}`);
+    if (product.additive_load > 5) concerns.push(`${product.additive_load} total additives`);
+    
+    if (concerns.length > 0) {
+        details += '<div class="quality-card">';
+        details += '<div class="quality-header quality-negative">Considerations</div>';
+        details += '<ul class="quality-list">';
+        concerns.forEach(c => {
+            details += `<li>${c}</li>`;
+        });
+        details += '</ul></div>';
+    }
+    
+    details += '</div>';
+    return details;
+}
+
+function getHealthScoreDisplay(score) {
+    if (score >= 70) return `<span style="color: var(--forest); font-weight: 500;">${score}</span>`;
+    if (score >= 50) return `<span style="color: #8b7355; font-weight: 500;">${score}</span>`;
+    return `<span style="color: #8b5a5a; font-weight: 500;">${score}</span>`;
+}
+
+function getIngredientClass(type) {
+    const typeMap = {
+        'natural': 'ingredient-natural',
+        'natural sugar': 'ingredient-sugar',
+        'healthy fat': 'ingredient-fat',
+        'spice': 'ingredient-spice'
+    };
+    return typeMap[type.toLowerCase()] || 'ingredient-natural';
+}
+
+function shareResults(productName, healthScore) {
+    const text = `${productName} — Health Score: ${healthScore}/100 (Analyzed via NaturalScan)`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: `${productName} Analysis`,
+            text: text,
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Analysis copied to clipboard');
+        });
+    }
+}
+
+function stopScanner() {
+    isScanning = false;
+    lastDetectedBarcode = null;
+    detectionConfidence = 0;
+    
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    
+    if (context) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+    
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = false;
+}
+
+window.addEventListener('beforeunload', () => {
+    if (isScanning) stopScanner();
+});
