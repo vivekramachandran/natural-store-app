@@ -885,6 +885,199 @@ function displayProduct(product) {
     setTimeout(() => document.getElementById('result').scrollIntoView({behavior: 'smooth'}), 100);
 }
 
+function displayProduct(product, competitors, ingredients) {
+    const score = product.health_score || 0;
+    let rec = 'Not Recommended', recClass = 'rec-avoid', scoreClass = 'score-poor';
+    if (score >= 70) { rec = 'Recommended'; recClass = 'rec-buy'; scoreClass = 'score-excellent'; }
+    else if (score >= 50) { rec = 'Consider Carefully'; recClass = 'rec-caution'; scoreClass = 'score-good'; }
+    
+    let html = `
+        <div class="health-card">
+            <div class="product-header">
+                <div class="product-title">${product.name}</div>
+                <div class="product-subtitle">Comprehensive Nutritional Analysis</div>
+            </div>
+            <div class="health-score-display">
+                <div class="score-section">
+                    <div class="score-label">Health Score</div>
+                    <div class="score-number ${scoreClass}">${score}<span style="font-size:28px;color:var(--silver);font-weight:300;">/100</span></div>
+                </div>
+                <div class="recommendation ${recClass}">${rec}</div>
+            </div>
+            <div class="impact-section">
+                <div class="impact-title">Expert Analysis</div>
+                <div class="impact-content">${product.health_analysis || 'Comprehensive nutritional data available upon request.'}</div>
+            </div>
+            ${getHealthImpactDetails(product)}
+            <div class="stat-grid">
+                <div class="stat-box"><div class="stat-label">Weight</div><div class="stat-value">${product.weight_g}g</div></div>
+                <div class="stat-box"><div class="stat-label">Price</div><div class="stat-value">₹${product.price}</div></div>
+                <div class="stat-box"><div class="stat-label">Calories</div><div class="stat-value">${product.calories}</div></div>
+                <div class="stat-box"><div class="stat-label">Protein</div><div class="stat-value">${product.protein || '0g'}</div></div>
+            </div>
+        </div>
+    `;
+    
+    if (competitors.length > 0) {
+        html += `
+            <div class="comparison-section">
+                <div class="section-title">Competitor Analysis</div>
+                <div class="section-subtitle">How this product compares to similar offerings</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th style="background: var(--accent);">${product.name}</th>
+                                ${competitors.map(c => `<th>${c.name}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${generateComparisonRows(product, competitors)}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (ingredients.length > 0) {
+        html += `
+            <div class="ingredients-section">
+                <div class="section-title">Ingredient Provenance</div>
+                <div class="section-subtitle">Complete transparency on what you consume</div>
+                <div class="ingredient-grid">
+                    ${ingredients.map(ing => `
+                        <div class="ingredient-card ${getIngredientClass(ing.type)}">
+                            <div class="ingredient-header">
+                                <div class="ingredient-name">${ing.name}</div>
+                                <div class="ingredient-badge">${ing.type}</div>
+                            </div>
+                            <div class="ingredient-impact">${ing.impact || 'Benefits not specified'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    html += `
+        <div class="button-group" style="margin-top:60px;">
+            <button onclick="startScanner()" class="btn-primary">Analyze Another Product</button>
+            <button onclick="shareResults('${product.name}', ${score})" class="btn-secondary">Share Analysis</button>
+        </div>
+    `;
+    
+    document.getElementById('result').innerHTML = html;
+    setTimeout(() => document.getElementById('result').scrollIntoView({behavior: 'smooth'}), 100);
+}
+
+function generateComparisonRows(mainProduct, competitors) {
+    const features = [
+        {key: 'calories', label: 'Calories', unit: 'kcal'},
+        {key: 'protein', label: 'Protein', unit: ''},
+        {key: 'fiber', label: 'Fiber', unit: ''},
+        {key: 'fat', label: 'Fat Source', unit: ''},
+        {key: 'sugar', label: 'Sugar Content', unit: ''},
+        {key: 'artificial_colors', label: 'Artificial Colors', unit: ''},
+        {key: 'preservatives', label: 'Preservatives', unit: ''},
+        {key: 'emulsifiers', label: 'Emulsifiers', unit: ''},
+        {key: 'additive_load', label: 'Additive Load', unit: ''},
+        {key: 'health_score', label: 'Health Score', unit: '/100'}
+    ];
+    
+    return features.map(feature => {
+        let mainValue = mainProduct[feature.key] || 'None';
+        if (feature.key === 'health_score') {
+            mainValue = getHealthScoreDisplay(mainProduct[feature.key]);
+        } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !mainValue) {
+            mainValue = 'None';
+        }
+        
+        const competitorValues = competitors.map(comp => {
+            let value = comp[feature.key] || 'None';
+            if (feature.key === 'health_score') {
+                value = getHealthScoreDisplay(comp[feature.key]);
+            } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !value) {
+                value = 'None';
+            }
+            return `<td style="text-align:center;">${value} ${feature.unit}</td>`;
+        }).join('');
+        
+        return `
+            <tr>
+                <td style="font-weight:500;color:var(--forest);">${feature.label}</td>
+                <td class="highlight-col" style="text-align:center;">${mainValue} ${feature.unit}</td>
+                ${competitorValues}
+            </tr>
+        `;
+    }).join('');
+}
+
+function getHealthImpactDetails(product) {
+    let details = '<div class="quality-grid">';
+    
+    let positives = [];
+    if (product.fiber && product.fiber !== '0') positives.push(`High fiber content (${product.fiber})`);
+    if (product.protein && product.protein !== '0') positives.push(`Quality protein source (${product.protein})`);
+    if (!product.artificial_colors) positives.push('No artificial colorants');
+    if (!product.preservatives) positives.push('Preservative-free formulation');
+    if (product.additive_load === 0) positives.push('Zero synthetic additives');
+    
+    if (positives.length > 0) {
+        details += '<div class="quality-card">';
+        details += '<div class="quality-header quality-positive">Quality Indicators</div>';
+        details += '<ul class="quality-list">';
+        positives.forEach(p => details += `<li>${p}</li>`);
+        details += '</ul></div>';
+    }
+    
+    let concerns = [];
+    if (product.sugar && product.sugar.includes('tsp')) {
+        const tsp = parseInt(product.sugar);
+        if (tsp > 3) concerns.push(`Elevated sugar content (${product.sugar})`);
+    }
+    if (product.artificial_colors) concerns.push(`Contains artificial colors: ${product.artificial_colors}`);
+    if (product.preservatives) concerns.push(`Preservatives present: ${product.preservatives}`);
+    if (product.additive_load > 5) concerns.push(`${product.additive_load} total additives`);
+    
+    if (concerns.length > 0) {
+        details += '<div class="quality-card">';
+        details += '<div class="quality-header quality-negative">Considerations</div>';
+        details += '<ul class="quality-list">';
+        concerns.forEach(c => details += `<li>${c}</li>`);
+        details += '</ul></div>';
+    }
+    
+    details += '</div>';
+    return details;
+}
+
+function getHealthScoreDisplay(score) {
+    if (score >= 70) return `<span style="color:var(--forest);font-weight:500;">${score}</span>`;
+    if (score >= 50) return `<span style="color:#8b7355;font-weight:500;">${score}</span>`;
+    return `<span style="color:#8b5a5a;font-weight:500;">${score}</span>`;
+}
+
+function getIngredientClass(type) {
+    const typeMap = {
+        'natural': 'ingredient-natural',
+        'natural sugar': 'ingredient-sugar',
+        'healthy fat': 'ingredient-fat',
+        'spice': 'ingredient-spice'
+    };
+    return typeMap[type.toLowerCase()] || 'ingredient-natural';
+}
+
+function shareResults(productName, healthScore) {
+    const text = `${productName} — Health Score: ${healthScore}/100 (Analyzed via NaturalScan)`;
+    if (navigator.share) {
+        navigator.share({title: `${productName} Analysis`, text: text, url: window.location.href});
+    } else {
+        navigator.clipboard.writeText(text).then(() => alert('Analysis copied to clipboard'));
+    }
+}
+
 function stopScanner() {
     isScanning = false;
     lastDetectedBarcode = null;
