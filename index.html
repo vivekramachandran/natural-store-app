@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NaturalScan - Know What You Eat</title>
+<title>NaturalScan - Yuka Style</title>
 <style>
   * {
     margin: 0;
@@ -11,86 +11,34 @@
     box-sizing: border-box;
   }
   
-  body { 
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-    margin: 0;
-    background: #f5f5f7;
-    color: #1d1d1f;
-    line-height: 1.6;
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
     overflow-x: hidden;
   }
   
-  /* Hero Section */
-  .hero {
-    background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
-    color: white;
-    padding: 60px 20px 40px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-    animation: move 20s linear infinite;
-    opacity: 0.3;
-  }
-  
-  @keyframes move {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(50px, 50px); }
-  }
-  
-  .hero h1 {
-    font-size: 48px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    letter-spacing: -0.5px;
-    position: relative;
-    z-index: 1;
-  }
-  
-  .hero p {
-    font-size: 21px;
-    font-weight: 400;
-    opacity: 0.95;
-    position: relative;
-    z-index: 1;
-  }
-  
-  /* Container */
-  .container {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-  
   /* Scanner Section */
-  .scanner-section {
+  .scan-section {
     background: white;
-    border-radius: 18px;
-    padding: 40px;
-    margin: -40px auto 40px;
-    max-width: 720px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-    position: relative;
-    z-index: 2;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #2d3436;
+    margin-bottom: 10px;
   }
   
   #scanner-container {
     width: 100%;
-    height: 380px;
-    position: relative;
-    margin: 30px 0;
-    border-radius: 18px;
+    max-width: 400px;
+    height: 300px;
+    margin: 20px auto;
+    border-radius: 16px;
     overflow: hidden;
+    position: relative;
     background: #000;
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   }
@@ -107,408 +55,309 @@
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
   }
   
-  #guide-box {
+  .scan-guide {
     position: absolute;
-    top: 35%;
-    left: 10%;
-    right: 10%;
-    height: 30%;
-    border: 3px solid rgba(0, 212, 170, 0.8);
-    border-radius: 18px;
-    background: rgba(0, 212, 170, 0.05);
-    animation: scanPulse 2s ease-in-out infinite;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 120px;
+    border: 3px solid #00b894;
+    border-radius: 12px;
+    background: rgba(0, 184, 148, 0.1);
+    animation: scanPulse 2s infinite;
   }
   
   @keyframes scanPulse {
-    0%, 100% { 
-      opacity: 0.6;
-      box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
-    }
-    50% { 
-      opacity: 1;
-      box-shadow: 0 0 0 10px rgba(0, 212, 170, 0);
-    }
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
   }
   
-  #guide-text {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
+  .btn-scan {
+    background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
     color: white;
-    background: rgba(0, 212, 170, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
-  }
-  
-  /* Buttons */
-  .button-group {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    margin-top: 30px;
-    flex-wrap: wrap;
-  }
-  
-  button {
-    padding: 14px 32px;
     border: none;
-    border-radius: 980px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: inherit;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
-  }
-  
-  button:hover::before {
-    transform: translateX(100%);
-  }
-  
-  .btn-primary {
-    background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
-    color: white;
-    box-shadow: 0 4px 16px rgba(0, 212, 170, 0.3);
-  }
-  
-  .btn-primary:hover {
-    box-shadow: 0 6px 24px rgba(0, 212, 170, 0.4);
-    transform: translateY(-2px);
-  }
-  
-  .btn-primary:active {
-    transform: translateY(0);
-  }
-  
-  .btn-secondary {
-    background: white;
-    color: #00a8ff;
-    border: 2px solid #00a8ff;
-  }
-  
-  .btn-secondary:hover {
-    background: #f5f5f7;
-    transform: translateY(-2px);
-  }
-  
-  button:disabled {
-    background: #d2d2d7;
-    color: #86868b;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-  
-  button:disabled:hover {
-    transform: none;
-  }
-  
-  /* Result Section */
-  #result {
-    margin-top: 30px;
-    min-height: 80px;
-    animation: fadeIn 0.5s ease-in;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  /* Health Score Card */
-  .health-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
-    border-radius: 24px;
-    padding: 40px;
-    margin: 30px 0;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-    border: 1px solid rgba(0,0,0,0.04);
-    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .product-title {
-    font-size: 32px;
+    padding: 16px 48px;
+    font-size: 18px;
     font-weight: 700;
-    color: #1d1d1f;
-    margin-bottom: 24px;
-    letter-spacing: -0.5px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+    transition: all 0.3s;
+    margin: 10px;
   }
   
-  .health-score-display {
+  .btn-scan:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 184, 148, 0.5);
+  }
+  
+  .btn-scan:disabled {
+    background: #b2bec3;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  
+  /* Results Section - FULL SCREEN COLOR BLOCK */
+  .result-screen {
+    display: none;
+    min-height: 100vh;
+    padding: 0;
+  }
+  
+  .result-screen.show {
+    display: block;
+  }
+  
+  /* Color-coded header based on health score */
+  .result-header {
+    padding: 60px 20px 40px;
+    text-align: center;
+    color: white;
+    position: relative;
+  }
+  
+  .result-header.excellent {
+    background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
+  }
+  
+  .result-header.good {
+    background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
+  }
+  
+  .result-header.poor {
+    background: linear-gradient(135deg, #d63031 0%, #e74c3c 100%);
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid white;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    background: white;
-    padding: 30px;
-    border-radius: 18px;
-    margin: 24px 0;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    justify-content: center;
+    backdrop-filter: blur(10px);
+  }
+  
+  .score-emoji {
+    font-size: 80px;
+    margin-bottom: 10px;
+    animation: bounceIn 0.6s;
+  }
+  
+  @keyframes bounceIn {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
   }
   
   .score-number {
-    font-size: 56px;
-    font-weight: 800;
-    letter-spacing: -2px;
+    font-size: 72px;
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
   
-  .score-excellent { color: #34c759; }
-  .score-good { color: #ff9500; }
-  .score-poor { color: #ff3b30; }
+  .score-label {
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
   
-  .recommendation {
+  .product-name {
     font-size: 24px;
+    margin-top: 20px;
+    font-weight: 600;
+    opacity: 0.95;
+  }
+  
+  /* Content Cards */
+  .result-content {
+    padding: 20px;
+    background: #f8f9fa;
+  }
+  
+  .impact-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+  
+  .card-title {
+    font-size: 18px;
     font-weight: 700;
-    padding: 12px 28px;
-    border-radius: 980px;
-    display: inline-block;
-  }
-  
-  .rec-buy {
-    background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
-    color: white;
-    box-shadow: 0 4px 16px rgba(52, 199, 89, 0.3);
-  }
-  
-  .rec-caution {
-    background: linear-gradient(135deg, #ff9500 0%, #ff9f0a 100%);
-    color: white;
-    box-shadow: 0 4px 16px rgba(255, 149, 0, 0.3);
-  }
-  
-  .rec-avoid {
-    background: linear-gradient(135deg, #ff3b30 0%, #ff453a 100%);
-    color: white;
-    box-shadow: 0 4px 16px rgba(255, 59, 48, 0.3);
-  }
-  
-  .impact-section {
-    background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
-    padding: 28px;
-    border-radius: 18px;
-    margin: 24px 0;
-    border: 1px solid rgba(0,0,0,0.06);
-  }
-  
-  .impact-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1d1d1f;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 10px;
   }
   
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 16px;
-    margin: 24px 0;
-  }
-  
-  .stat-box {
-    background: white;
-    padding: 20px;
-    border-radius: 14px;
-    text-align: center;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    transition: transform 0.3s ease;
-  }
-  
-  .stat-box:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
-  
-  .stat-label {
-    font-size: 13px;
-    color: #86868b;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .stat-value {
+  .icon-positive {
     font-size: 24px;
-    font-weight: 700;
-    color: #1d1d1f;
-    margin-top: 8px;
+  }
+  
+  .icon-negative {
+    font-size: 24px;
+  }
+  
+  .impact-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .impact-list li {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  
+  .impact-list.positive li {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+  
+  .impact-list.negative li {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+  
+  .impact-list.neutral li {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+    border-left: 4px solid #ffc107;
+  }
+  
+  /* Nutritional Grid */
+  .nutri-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .nutri-box {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid #e9ecef;
+  }
+  
+  .nutri-label {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .nutri-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #2d3436;
   }
   
   /* Comparison Table */
-  .comparison-section {
+  .comparison-card {
     background: white;
-    border-radius: 24px;
-    padding: 40px;
-    margin: 30px 0;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-    animation: slideUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .section-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1d1d1f;
-    margin-bottom: 28px;
-    letter-spacing: -0.5px;
-  }
-  
-  .table-wrapper {
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     overflow-x: auto;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   }
   
   table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 14px;
+    border-collapse: collapse;
+    font-size: 13px;
   }
   
   th {
-    background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+    background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
     color: white;
-    padding: 18px 16px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: 0.3px;
+    padding: 14px 8px;
+    font-weight: 700;
+    text-align: center;
+    font-size: 12px;
+    position: sticky;
+    top: 0;
   }
   
   th:first-child {
-    border-top-left-radius: 14px;
+    border-radius: 8px 0 0 0;
+    text-align: left;
   }
   
   th:last-child {
-    border-top-right-radius: 14px;
+    border-radius: 0 8px 0 0;
   }
   
   td {
-    padding: 16px;
-    border-bottom: 1px solid #f5f5f7;
-    background: white;
+    padding: 12px 8px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
   }
   
-  tr:last-child td:first-child {
-    border-bottom-left-radius: 14px;
-  }
-  
-  tr:last-child td:last-child {
-    border-bottom-right-radius: 14px;
-  }
-  
-  tr:hover td {
-    background: #f9f9fb;
+  td:first-child {
+    text-align: left;
+    font-weight: 600;
+    color: #2d3436;
   }
   
   .highlight-col {
-    background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 168, 255, 0.05) 100%) !important;
-    font-weight: 600;
+    background: linear-gradient(135deg, rgba(0, 184, 148, 0.1) 0%, rgba(0, 210, 160, 0.1) 100%);
+    font-weight: 700;
   }
   
-  /* Ingredients Section */
-  .ingredients-section {
-    background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
-    border-radius: 24px;
-    padding: 40px;
-    margin: 30px 0;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-    animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .ingredient-grid {
-    display: grid;
-    gap: 16px;
-    margin-top: 24px;
-  }
-  
-  .ingredient-card {
-    background: white;
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    border-left: 4px solid;
-    transition: all 0.3s ease;
-  }
-  
-  .ingredient-card:hover {
-    transform: translateX(4px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-  }
-  
-  .ingredient-natural { border-left-color: #34c759; }
-  .ingredient-sugar { border-left-color: #ff9500; }
-  .ingredient-fat { border-left-color: #00a8ff; }
-  .ingredient-spice { border-left-color: #af52de; }
-  
-  .ingredient-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  
-  .ingredient-name {
+  /* Action Button */
+  .action-btn {
+    width: 100%;
+    max-width: 400px;
+    margin: 30px auto;
+    display: block;
+    background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
+    color: white;
+    border: none;
+    padding: 18px;
     font-size: 18px;
     font-weight: 700;
-    color: #1d1d1f;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
   }
   
-  .ingredient-badge {
-    background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
-    color: #1d1d1f;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  /* Loading State */
+  .loading {
+    text-align: center;
+    padding: 40px;
   }
   
-  .ingredient-impact {
-    color: #6e6e73;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  
-  /* Loading States */
-  .loading-spinner {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(0, 212, 170, 0.2);
-    border-top: 3px solid #00d4aa;
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #00b894;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-right: 12px;
-    vertical-align: middle;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
   }
   
   @keyframes spin {
@@ -516,177 +365,47 @@
     100% { transform: rotate(360deg); }
   }
   
-  /* Status Messages */
-  .status-message {
-    text-align: center;
-    padding: 24px;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  .status-error {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
-    color: #ff3b30;
-    border: 1px solid rgba(255, 59, 48, 0.2);
-  }
-  
-  .status-success {
-    background: linear-gradient(135deg, #f0fff4 0%, #e5ffe9 100%);
-    color: #34c759;
-    border: 1px solid rgba(52, 199, 89, 0.2);
-  }
-  
-  .status-info {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2ff 100%);
-    color: #00a8ff;
-    border: 1px solid rgba(0, 168, 255, 0.2);
-  }
-  
-  /* Barcode Display */
-  .barcode-display {
-    background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%);
-    color: white;
-    padding: 20px 32px;
-    border-radius: 16px;
-    font-family: 'SF Mono', 'Monaco', monospace;
-    font-size: 24px;
-    font-weight: 700;
-    text-align: center;
-    letter-spacing: 2px;
-    margin: 20px 0;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  }
-  
-  /* Responsive Design */
+  /* Mobile Responsive */
   @media (max-width: 768px) {
-    .hero h1 {
-      font-size: 36px;
-    }
-    
-    .hero p {
-      font-size: 18px;
-    }
-    
-    .scanner-section {
-      padding: 24px;
-      margin: -30px 16px 24px;
-    }
-    
-    #scanner-container {
-      height: 300px;
-    }
-    
-    .product-title {
-      font-size: 24px;
-    }
-    
-    .score-number {
-      font-size: 42px;
-    }
-    
-    .recommendation {
-      font-size: 18px;
-    }
-    
-    .health-card,
-    .comparison-section,
-    .ingredients-section {
-      padding: 24px;
-    }
-    
-    .stat-row {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    th, td {
-      padding: 12px 8px;
-      font-size: 13px;
-    }
-  }
-  
-  /* Smooth Scrolling */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Footer */
-  .footer {
-    text-align: center;
-    padding: 60px 20px;
-    color: #86868b;
-    font-size: 14px;
-  }
-  
-  .footer-links {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    margin-top: 16px;
-    flex-wrap: wrap;
-  }
-  
-  .footer-links a {
-    color: #00a8ff;
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-  
-  .footer-links a:hover {
-    color: #00d4aa;
+    .score-emoji { font-size: 60px; }
+    .score-number { font-size: 56px; }
+    .score-label { font-size: 22px; }
+    .product-name { font-size: 20px; }
+    .nutri-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
 <body>
 
-<!-- Hero Section -->
-<div class="hero">
-  <h1>Know What You Eat.</h1>
-  <p>Scan any product. See the truth instantly.</p>
-</div>
-
-<!-- Scanner Section -->
-<div class="container">
-  <div class="scanner-section">
-    <div id="scanner-container">
-      <video id="video" playsinline autoplay muted></video>
-      <canvas id="canvas"></canvas>
-      <div id="guide-box">
-        <div id="guide-text">🎯 Align barcode here</div>
-      </div>
-    </div>
-
-    <div class="button-group">
-      <button id="startBtn" onclick="startScanner()" class="btn-primary">Start Scanner</button>
-      <button id="stopBtn" onclick="stopScanner()" class="btn-secondary" disabled>Stop Scanner</button>
-    </div>
-
-    <div id="result">
-      <div class="status-message status-info">
-        Ready to scan! Point your camera at any product barcode to see its health analysis.
-      </div>
-    </div>
+<!-- Scanner Screen -->
+<div class="scan-section" id="scanSection">
+  <div class="logo">🌱 NaturalScan</div>
+  <p style="color: #636e72; margin-bottom: 20px;">Scan any product to see its health score</p>
+  
+  <div id="scanner-container">
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="canvas"></canvas>
+    <div class="scan-guide"></div>
   </div>
+  
+  <button class="btn-scan" id="startBtn" onclick="startScanner()">
+    📷 Start Scanning
+  </button>
+  <button class="btn-scan" id="stopBtn" onclick="stopScanner()" disabled style="background: #636e72;">
+    ⏹ Stop
+  </button>
 </div>
 
-<!-- Footer -->
-<div class="footer">
-  <p>Making healthier choices, one scan at a time.</p>
-  <div class="footer-links">
-    <a href="#">Privacy</a>
-    <a href="#">Terms</a>
-    <a href="#">Contact</a>
-  </div>
+<!-- Results Screen -->
+<div class="result-screen" id="resultScreen">
+  <!-- Dynamic content will be inserted here -->
 </div>
 
-<!-- Supabase client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 let video = null, canvas = null, context = null;
 let isScanning = false, animationId = null, barcodeDetector = null;
-let lastDetectedBarcode = null;
-let detectionConfidence = 0;
+let lastDetectedBarcode = null, detectionConfidence = 0;
 
 const supabaseUrl = "https://fdfdxszvenmbdkmxkuej.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZmR4c3p2ZW5tYmRrbXhrdWVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMzY5MzIsImV4cCI6MjA3NDYxMjkzMn0.4p_cmxlPd8L0CY7PiWjbCZ1NZ0jQs-jI1W3tW_Vsi2A";
@@ -694,23 +413,8 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 function validateAndFormatBarcode(rawBarcode, format) {
     let cleanBarcode = rawBarcode.replace(/[^0-9]/g, '');
-    
-    switch(format) {
-        case 'ean_13':
-            if (cleanBarcode.length === 13) return cleanBarcode;
-            else if (cleanBarcode.length === 12) return '0' + cleanBarcode;
-            break;
-        case 'ean_8':
-            if (cleanBarcode.length === 8) return cleanBarcode;
-            break;
-        case 'upc_a':
-            if (cleanBarcode.length === 12) return cleanBarcode;
-            break;
-        case 'code_128':
-        case 'code_39':
-            return rawBarcode.trim();
-    }
-    
+    if (format === 'ean_13' && cleanBarcode.length === 13) return cleanBarcode;
+    if (format === 'ean_13' && cleanBarcode.length === 12) return '0' + cleanBarcode;
     return cleanBarcode;
 }
 
@@ -727,20 +431,14 @@ async function checkBarcodeSupport() {
 async function initBarcodeDetector() {
     try {
         barcodeDetector = new BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'qr_code']
         });
         return true;
-    } catch (err) { 
-        console.error('BarcodeDetector error:', err);
-        return false; 
-    }
+    } catch (err) { return false; }
 }
 
 async function startScanner() {
     if (isScanning) return;
-    
-    lastDetectedBarcode = null;
-    detectionConfidence = 0;
     
     video = document.getElementById('video');
     canvas = document.getElementById('canvas');
@@ -748,161 +446,83 @@ async function startScanner() {
 
     const hasSupport = await checkBarcodeSupport();
     if (!hasSupport) {
-        document.getElementById('result').innerHTML = `
-            <div class="status-message status-error">
-                ❌ Barcode Detection not supported in this browser.<br>
-                Try Chrome or Edge on Android.
-            </div>
-        `;
+        alert('Barcode scanning not supported in this browser. Use Chrome/Edge on Android.');
         return;
     }
     
-    const detectorReady = await initBarcodeDetector();
-    if (!detectorReady) {
-        document.getElementById('result').innerHTML = '<div class="status-message status-error">❌ Failed to initialize scanner</div>';
-        return;
-    }
+    await initBarcodeDetector();
 
     try {
-        document.getElementById('result').innerHTML = '<div class="status-message status-info"><span class="loading-spinner"></span>Starting camera...</div>';
-        
         const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: 'environment',
-                width: { ideal: 1280, max: 1920 },
-                height: { ideal: 720, max: 1080 }
-            } 
+            video: { facingMode: 'environment' } 
         });
-        
         video.srcObject = stream;
-
         video.onloadedmetadata = () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             isScanning = true;
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
-            document.getElementById('result').innerHTML = '<div class="status-message status-success">📱 Scanner active! Point at a barcode</div>';
             scanLoop();
         };
-        
     } catch (err) {
-        console.error('Camera error:', err);
-        document.getElementById('result').innerHTML = `<div class="status-message status-error">❌ Camera access denied</div>`;
+        alert('Camera access denied: ' + err.message);
     }
 }
 
 async function scanLoop() {
     if (!isScanning) return;
-    
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
         try {
             const barcodes = await barcodeDetector.detect(video);
-            
             if (barcodes.length > 0) {
                 const barcode = barcodes[0];
                 const formattedBarcode = validateAndFormatBarcode(barcode.rawValue, barcode.format);
-                
                 if (lastDetectedBarcode === formattedBarcode) {
                     detectionConfidence++;
                     if (detectionConfidence >= 3) {
-                        onBarcodeDetected(barcode, formattedBarcode);
+                        onBarcodeDetected(formattedBarcode);
                         return;
                     }
                 } else {
                     lastDetectedBarcode = formattedBarcode;
                     detectionConfidence = 1;
                 }
-                
-                drawDetectionBox(barcode);
-                document.getElementById('result').innerHTML = `
-                    <div class="status-message status-info">
-                        🎯 Detecting: ${formattedBarcode} (${detectionConfidence}/3)
-                    </div>
-                `;
             }
-        } catch (err) { 
-            console.error('Detection error:', err); 
-        }
+        } catch (err) { }
     }
-    
     animationId = requestAnimationFrame(scanLoop);
 }
 
-function drawDetectionBox(barcode) {
-    if (!context) return;
-    
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.strokeStyle = '#00d4aa';
-    context.lineWidth = 4;
-    context.setLineDash([]);
-    
-    const box = barcode.boundingBox;
-    context.strokeRect(box.x, box.y, box.width, box.height);
-    
-    if (barcode.cornerPoints && barcode.cornerPoints.length === 4) {
-        context.fillStyle = '#00d4aa';
-        barcode.cornerPoints.forEach(point => {
-            context.beginPath();
-            context.arc(point.x, point.y, 6, 0, 2 * Math.PI);
-            context.fill();
-        });
-    }
+async function onBarcodeDetected(barcode) {
+    stopScanner();
+    playBeep();
+    showLoading();
+    await fetchProductInfo(barcode);
 }
 
-async function onBarcodeDetected(barcode, formattedBarcode) {
-    stopScanner();
-    playSuccessSound();
-    
-    document.getElementById('result').innerHTML = `
-        <div class="status-message status-success">
-            ✅ Barcode Detected!
-        </div>
-        <div class="barcode-display">${formattedBarcode}</div>
-        <div class="status-message status-info">
-            <span class="loading-spinner"></span>Loading product information...
+function showLoading() {
+    const resultScreen = document.getElementById('resultScreen');
+    resultScreen.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="font-size: 18px; color: #636e72;">Analyzing product...</p>
         </div>
     `;
-    
-    await fetchProductInfo(formattedBarcode);
-}
-
-function playSuccessSound() {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-    } catch (e) {}
+    resultScreen.classList.add('show');
+    document.getElementById('scanSection').style.display = 'none';
 }
 
 async function fetchProductInfo(barcodeValue) {
     try {
         const { data: mainProduct, error } = await supabase
-            .from('products')
+            .from('newproducts')
             .select('*')
             .eq('barcode', barcodeValue)
             .single();
 
         if (error || !mainProduct) {
-            document.getElementById('result').innerHTML = `
-                <div class="status-message status-error">
-                    ❌ Product not found in our database
-                    <div style="margin-top: 16px; font-size: 14px;">
-                        Barcode: <code>${barcodeValue}</code>
-                    </div>
-                </div>
-                <div class="button-group" style="margin-top: 24px;">
-                    <button onclick="startScanner()" class="btn-primary">🔄 Scan Another</button>
-                </div>
-            `;
+            showError(barcodeValue);
             return;
         }
 
@@ -922,288 +542,223 @@ async function fetchProductInfo(barcodeValue) {
 
             if (competitorIds.length > 0) {
                 const { data: competitorProducts } = await supabase
-                    .from('products')
+                    .from('newproducts')
                     .select('*')
                     .in('product_id', competitorIds);
-                competitors = competitorProducts || [];
+                if (competitorProducts) competitors = competitorProducts;
             }
         }
 
-        const { data: ingredients } = await supabase
-            .from('ingredients')
-            .select('*')
-            .eq('product_id', mainProduct.product_id);
-
-        displayProduct(mainProduct, competitors, ingredients || []);
-        
+        displayYukaStyle(mainProduct, competitors);
     } catch (err) {
-        console.error('Database error:', err);
-        document.getElementById('result').innerHTML = `
-            <div class="status-message status-error">
-                ❌ Connection error. Please check your internet.
-            </div>
-        `;
+        showError('Error connecting to database');
     }
 }
 
-function displayProduct(product, competitors, ingredients) {
-    const healthScore = product.health_score || 0;
-    let recommendation = '❌ AVOID';
-    let recClass = 'rec-avoid';
-    let scoreClass = 'score-poor';
+function displayYukaStyle(product, competitors) {
+    const score = product.health_score || 0;
+    let headerClass = 'poor';
+    let emoji = '😟';
+    let scoreText = 'POOR';
     
-    if (healthScore >= 70) {
-        recommendation = '✅ BUY';
-        recClass = 'rec-buy';
-        scoreClass = 'score-excellent';
-    } else if (healthScore >= 50) {
-        recommendation = '⚠️ CAUTION';
-        recClass = 'rec-caution';
-        scoreClass = 'score-good';
+    if (score >= 70) {
+        headerClass = 'excellent';
+        emoji = '😊';
+        scoreText = 'EXCELLENT';
+    } else if (score >= 50) {
+        headerClass = 'good';
+        emoji = '😐';
+        scoreText = 'GOOD';
     }
     
-    let html = `
-        <div class="health-card">
-            <div class="product-title">${product.name}</div>
-            
-            <div class="health-score-display">
-                <div>
-                    <div style="font-size: 14px; color: #86868b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Health Score</div>
-                    <div class="score-number ${scoreClass}">${healthScore}<span style="font-size: 28px; color: #86868b;">/100</span></div>
-                </div>
-                <div class="recommendation ${recClass}">${recommendation}</div>
-            </div>
-            
-            <div class="impact-section">
-                <div class="impact-title">
-                    <span>💡</span>
-                    <span>Health Analysis</span>
-                </div>
-                <div style="color: #1d1d1f; line-height: 1.6; font-size: 15px;">
-                    ${product.health_analysis || 'No detailed analysis available'}
-                </div>
-                ${getHealthImpactDetails(product)}
-            </div>
-            
-            <div class="stat-row">
-                <div class="stat-box">
-                    <div class="stat-label">Weight</div>
-                    <div class="stat-value">${product.weight_g}g</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Price</div>
-                    <div class="stat-value">₹${product.price}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Calories</div>
-                    <div class="stat-value">${product.calories}</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Protein</div>
-                    <div class="stat-value">${product.protein || '0g'}</div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    if (competitors.length > 0) {
-        html += `
-            <div class="comparison-section">
-                <div class="section-title">🔍 Competitor Comparison</div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">Feature</th>
-                                <th style="text-align: center; background: rgba(255,255,255,0.2);">${product.name}</th>
-                                ${competitors.map(c => `<th style="text-align: center;">${c.name}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${generateComparisonRows(product, competitors)}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-    }
-
-    if (ingredients.length > 0) {
-        html += `
-            <div class="ingredients-section">
-                <div class="section-title">🧪 Ingredient Breakdown</div>
-                <div class="ingredient-grid">
-                    ${ingredients.map(ing => `
-                        <div class="ingredient-card ${getIngredientClass(ing.type)}">
-                            <div class="ingredient-header">
-                                <div class="ingredient-name">${ing.name}</div>
-                                <div class="ingredient-badge">${ing.type}</div>
-                            </div>
-                            <div class="ingredient-impact">
-                                ${ing.impact || 'Benefits not specified'}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    html += `
-        <div class="button-group" style="margin-top: 40px;">
-            <button onclick="startScanner()" class="btn-primary">🔄 Scan Another Product</button>
-            <button onclick="shareResults('${product.name}', ${healthScore})" class="btn-secondary">📤 Share Results</button>
-        </div>
-    `;
-
-    document.getElementById('result').innerHTML = html;
-    
-    setTimeout(() => {
-        document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-}
-
-function generateComparisonRows(mainProduct, competitors) {
-    const features = [
-        { key: 'calories', label: 'Calories', unit: 'kcal' },
-        { key: 'protein', label: 'Protein', unit: '' },
-        { key: 'fiber', label: 'Fiber', unit: '' },
-        { key: 'fat', label: 'Fat Source', unit: '' },
-        { key: 'sugar', label: 'Sugar Content', unit: '' },
-        { key: 'artificial_colors', label: 'Artificial Colors', unit: '' },
-        { key: 'preservatives', label: 'Preservatives', unit: '' },
-        { key: 'emulsifiers', label: 'Emulsifiers', unit: '' },
-        { key: 'additive_load', label: 'Additive Load', unit: '' },
-        { key: 'health_score', label: 'Health Score', unit: '/100' }
-    ];
-
-    return features.map((feature, index) => {
-        let mainValue = mainProduct[feature.key] || 'None';
-        
-        if (feature.key === 'health_score') {
-            mainValue = getHealthScoreDisplay(mainProduct[feature.key]);
-        } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !mainValue) {
-            mainValue = '✅ None';
-        }
-
-        const competitorValues = competitors.map(comp => {
-            let value = comp[feature.key] || 'None';
-            if (feature.key === 'health_score') {
-                value = getHealthScoreDisplay(comp[feature.key]);
-            } else if (['artificial_colors', 'preservatives', 'emulsifiers'].includes(feature.key) && !value) {
-                value = '✅ None';
-            }
-            return `<td style="text-align: center;">${value} ${feature.unit}</td>`;
-        }).join('');
-
-        const rowStyle = index % 2 === 0 ? 'background: #fafafa;' : '';
-        
-        return `
-            <tr style="${rowStyle}">
-                <td style="font-weight: 600; color: #1d1d1f;">${feature.label}</td>
-                <td class="highlight-col" style="text-align: center; font-weight: 700;">${mainValue} ${feature.unit}</td>
-                ${competitorValues}
-            </tr>
-        `;
-    }).join('');
-}
-
-function getHealthImpactDetails(product) {
-    let details = '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06);">';
-    
+    // Build positive impacts
     let positives = [];
-    if (product.fiber && product.fiber !== '0') positives.push(`High fiber (${product.fiber})`);
-    if (product.protein && product.protein !== '0') positives.push(`Good protein (${product.protein})`);
+    if (product.fiber && product.fiber !== '0') positives.push(`High in fiber (${product.fiber})`);
+    if (product.protein && product.protein !== '0') positives.push(`Good protein source (${product.protein})`);
     if (!product.artificial_colors) positives.push('No artificial colors');
     if (!product.preservatives) positives.push('No preservatives');
     if (product.additive_load === 0) positives.push('Zero additives');
+    if (product.beneficial_ingredients) positives.push(product.beneficial_ingredients);
     
-    if (positives.length > 0) {
-        details += '<div style="margin-bottom: 16px;">';
-        details += '<div style="font-weight: 700; color: #34c759; margin-bottom: 8px;">✅ What\'s Good</div>';
-        details += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
-        positives.forEach(p => {
-            details += `<span style="background: #f0fff4; color: #34c759; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">${p}</span>`;
-        });
-        details += '</div></div>';
-    }
+    // Build negative impacts
+    let negatives = [];
+    if (product.harmful_ingredients) negatives.push(product.harmful_ingredients);
+    if (product.artificial_colors) negatives.push(`Artificial colors: ${product.artificial_colors}`);
+    if (product.preservatives) negatives.push(`Preservatives: ${product.preservatives}`);
+    if (product.additive_load > 5) negatives.push(`${product.additive_load} additives detected`);
+    if (product.sodium_mg && product.sodium_mg > 500) negatives.push(`High sodium (${product.sodium_mg}mg)`);
     
-    let concerns = [];
-    if (product.sugar && product.sugar.includes('tsp')) {
-        const tsp = parseInt(product.sugar);
-        if (tsp > 3) concerns.push(`High sugar (${product.sugar})`);
-    }
-    if (product.artificial_colors) concerns.push(`Artificial colors: ${product.artificial_colors}`);
-    if (product.preservatives) concerns.push(`Preservatives: ${product.preservatives}`);
-    if (product.additive_load > 5) concerns.push(`${product.additive_load} additives`);
+    let html = `
+        <div class="result-header ${headerClass}">
+            <button class="close-btn" onclick="closeResults()">×</button>
+            <div class="score-emoji">${emoji}</div>
+            <div class="score-number">${score}<span style="font-size: 36px;">/100</span></div>
+            <div class="score-label">${scoreText}</div>
+            <div class="product-name">${product.name}</div>
+        </div>
+        
+        <div class="result-content">
+            ${product.health_analysis ? `
+                <div class="impact-card">
+                    <div class="card-title">📋 Quick Analysis</div>
+                    <p style="color: #2d3436; line-height: 1.6;">${product.health_analysis}</p>
+                </div>
+            ` : ''}
+            
+            ${positives.length > 0 ? `
+                <div class="impact-card">
+                    <div class="card-title">
+                        <span class="icon-positive">✅</span>
+                        <span>Positive Impacts</span>
+                    </div>
+                    <ul class="impact-list positive">
+                        ${positives.map(p => `<li>${p}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+            
+            ${negatives.length > 0 ? `
+                <div class="impact-card">
+                    <div class="card-title">
+                        <span class="icon-negative">⚠️</span>
+                        <span>Negative Impacts</span>
+                    </div>
+                    <ul class="impact-list negative">
+                        ${negatives.map(n => `<li>${n}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+            
+            ${negatives.length === 0 && positives.length === 0 ? `
+                <div class="impact-card">
+                    <div class="card-title">✨ No Issues Detected</div>
+                    <p style="color: #00b894; font-weight: 600;">This product has a clean ingredient profile!</p>
+                </div>
+            ` : ''}
+            
+            <div class="impact-card">
+                <div class="card-title">📊 Nutritional Facts</div>
+                <div class="nutri-grid">
+                    <div class="nutri-box">
+                        <div class="nutri-label">Calories</div>
+                        <div class="nutri-value">${product.calories || '-'}</div>
+                    </div>
+                    <div class="nutri-box">
+                        <div class="nutri-label">Protein</div>
+                        <div class="nutri-value">${product.protein || '-'}</div>
+                    </div>
+                    <div class="nutri-box">
+                        <div class="nutri-label">Fiber</div>
+                        <div class="nutri-value">${product.fiber || '-'}</div>
+                    </div>
+                    <div class="nutri-box">
+                        <div class="nutri-label">Sugar</div>
+                        <div class="nutri-value">${product.sugar || '-'}</div>
+                    </div>
+                </div>
+            </div>
+            
+            ${competitors.length > 0 ? generateComparisonTable(product, competitors) : ''}
+            
+            <button class="action-btn" onclick="closeResults()">
+                🔄 Scan Another Product
+            </button>
+        </div>
+    `;
     
-    if (concerns.length > 0) {
-        details += '<div>';
-        details += '<div style="font-weight: 700; color: #ff3b30; margin-bottom: 8px;">⚠️ Watch Out For</div>';
-        details += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
-        concerns.forEach(c => {
-            details += `<span style="background: #fff5f5; color: #ff3b30; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;">${c}</span>`;
-        });
-        details += '</div></div>';
-    }
-    
-    details += '</div>';
-    return details;
+    document.getElementById('resultScreen').innerHTML = html;
 }
 
-function getHealthScoreDisplay(score) {
-    if (score >= 70) return `<span style="color: #34c759; font-weight: 700;">${score} ✅</span>`;
-    if (score >= 50) return `<span style="color: #ff9500; font-weight: 700;">${score} ⚠️</span>`;
-    return `<span style="color: #ff3b30; font-weight: 700;">${score} ❌</span>`;
+function generateComparisonTable(product, competitors) {
+    return `
+        <div class="comparison-card">
+            <div class="card-title">🔍 Compare with Others</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>${product.name}</th>
+                        ${competitors.map(c => `<th>${c.name}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${generateRow('Health Score', product.health_score, competitors.map(c => c.health_score))}
+                    ${generateRow('Calories', product.calories, competitors.map(c => c.calories))}
+                    ${generateRow('Protein', product.protein, competitors.map(c => c.protein))}
+                    ${generateRow('Fiber', product.fiber, competitors.map(c => c.fiber))}
+                    ${generateRow('Sugar', product.sugar, competitors.map(c => c.sugar))}
+                    ${generateRow('Additives', product.additive_load, competitors.map(c => c.additive_load))}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
-function getIngredientClass(type) {
-    const typeMap = {
-        'natural': 'ingredient-natural',
-        'natural sugar': 'ingredient-sugar',
-        'healthy fat': 'ingredient-fat',
-        'spice': 'ingredient-spice'
-    };
-    return typeMap[type.toLowerCase()] || 'ingredient-natural';
+function generateRow(label, mainValue, competitorValues) {
+    return `
+        <tr>
+            <td>${label}</td>
+            <td class="highlight-col">${mainValue || '-'}</td>
+            ${competitorValues.map(v => `<td>${v || '-'}</td>`).join('')}
+        </tr>
+    `;
 }
 
-function shareResults(productName, healthScore) {
-    const text = `Just scanned ${productName} - Health Score: ${healthScore}/100`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: `${productName} Health Analysis`,
-            text: text,
-            url: window.location.href
-        });
-    } else {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('✅ Results copied to clipboard!');
-        });
-    }
+function showError(barcode) {
+    document.getElementById('resultScreen').innerHTML = `
+        <div class="result-header poor">
+            <button class="close-btn" onclick="closeResults()">×</button>
+            <div class="score-emoji">❌</div>
+            <div class="score-label">NOT FOUND</div>
+            <div class="product-name">Barcode: ${barcode}</div>
+        </div>
+        <div class="result-content">
+            <div class="impact-card">
+                <p style="text-align: center; color: #636e72;">
+                    This product is not in our database yet.
+                </p>
+            </div>
+            <button class="action-btn" onclick="closeResults()">
+                🔄 Try Another Product
+            </button>
+        </div>
+    `;
+}
+
+function closeResults() {
+    document.getElementById('resultScreen').classList.remove('show');
+    document.getElementById('scanSection').style.display = 'block';
+    lastDetectedBarcode = null;
+    detectionConfidence = 0;
 }
 
 function stopScanner() {
     isScanning = false;
     lastDetectedBarcode = null;
     detectionConfidence = 0;
-    
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-    
-    if (context) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    
+    if (animationId) cancelAnimationFrame(animationId);
+    if (context) context.clearRect(0, 0, canvas.width, canvas.height);
     if (video && video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
         video.srcObject = null;
     }
-    
     document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+}
+
+function playBeep() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {}
 }
 
 window.addEventListener('beforeunload', () => {
