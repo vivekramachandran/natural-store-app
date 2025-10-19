@@ -845,4 +845,298 @@ function displayProduct(product, competitors) {
             </div>
             
             <!-- Dual Score Display -->
-            <div class="dual-score
+            <div class="dual-score-display">
+                <div class="score-section">
+                    <div class="score-label">Health Score</div>
+                    <div class="score-number ${getScoreClass(healthScore)}">${healthScore}<span style="font-size:28px;color:var(--silver);font-weight:300;">/100</span></div>
+                </div>
+                <div class="score-section">
+                    <div class="score-label">VeriScore</div>
+                    <div class="score-number ${getScoreClass(veriScore)}">${veriScore}<span style="font-size:28px;color:var(--silver);font-weight:300;">/100</span></div>
+                    <div class="score-badge ${getScoreBadgeClass(veriScore)}">${veriRating}</div>
+                </div>
+            </div>
+            
+            <!-- Health Warnings -->
+            ${product.health_warning ? `
+            <div class="alert-section danger">
+                <div class="alert-title">⚠️ Health Warning</div>
+                <div class="alert-content">${product.health_warning}</div>
+            </div>
+            ` : ''}
+            
+            <!-- Allergens -->
+            ${product.allergens ? `
+            <div class="alert-section">
+                <div class="alert-title">Allergen Information</div>
+                <div class="alert-content">${product.allergens}</div>
+            </div>
+            ` : ''}
+            
+            <!-- Health Analysis -->
+            ${product.health_analysis ? `
+            <div class="evidence-section">
+                <div class="evidence-title">Expert Analysis</div>
+                <div class="evidence-content">${product.health_analysis}</div>
+            </div>
+            ` : ''}
+            
+            <!-- Nutrition Facts -->
+            <div class="section-title" style="margin-top: 40px;">Nutritional Information</div>
+            <div class="nutrition-grid">
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Calories</div>
+                    <div class="nutrition-value">${product.calories || 'N/A'}</div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Protein</div>
+                    <div class="nutrition-value">${product.protein_g || 0}<span class="nutrition-unit">g</span></div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Fat</div>
+                    <div class="nutrition-value">${product.fat_g || 0}<span class="nutrition-unit">g</span></div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Carbs</div>
+                    <div class="nutrition-value">${product.carbs_g || 0}<span class="nutrition-unit">g</span></div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Fiber</div>
+                    <div class="nutrition-value">${product.fiber_g || 0}<span class="nutrition-unit">g</span></div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Sugar</div>
+                    <div class="nutrition-value">${product.sugar_g || 0}<span class="nutrition-unit">g</span></div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Sodium</div>
+                    <div class="nutrition-value">${product.sodium_mg || 0}<span class="nutrition-unit">mg</span></div>
+                </div>
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Cholesterol</div>
+                    <div class="nutrition-value">${product.cholesterol_mg || 0}<span class="nutrition-unit">mg</span></div>
+                </div>
+            </div>
+            
+            <!-- Additional Nutritional Info -->
+            ${(product.glycemic_index || product.vitamins || product.minerals) ? `
+            <div class="nutrition-grid" style="margin-top: 20px;">
+                ${product.glycemic_index ? `
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Glycemic Index</div>
+                    <div class="nutrition-value">${product.glycemic_index}</div>
+                </div>
+                ` : ''}
+                ${product.vitamins ? `
+                <div class="nutrition-item" style="grid-column: span 2;">
+                    <div class="nutrition-label">Vitamins</div>
+                    <div style="font-size: 14px; margin-top: 8px;">${product.vitamins}</div>
+                </div>
+                ` : ''}
+                ${product.minerals ? `
+                <div class="nutrition-item" style="grid-column: span 2;">
+                    <div class="nutrition-label">Minerals</div>
+                    <div style="font-size: 14px; margin-top: 8px;">${product.minerals}</div>
+                </div>
+                ` : ''}
+            </div>
+            ` : ''}
+            
+            <!-- Ingredients Analysis -->
+            ${(product.beneficial_ingredients || product.harmful_ingredients) ? `
+            <div class="section-title" style="margin-top: 40px;">Ingredient Analysis</div>
+            <div class="ingredients-analysis">
+                ${product.beneficial_ingredients ? `
+                <div class="ingredient-card beneficial">
+                    <h3>✓ Beneficial Ingredients</h3>
+                    <ul class="ingredient-list">
+                        ${product.beneficial_ingredients.split(',').map(ing => 
+                            `<li>${ing.trim()}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+                ${product.harmful_ingredients ? `
+                <div class="ingredient-card harmful">
+                    <h3>✗ Ingredients of Concern</h3>
+                    <ul class="ingredient-list">
+                        ${product.harmful_ingredients.split(',').map(ing => 
+                            `<li>${ing.trim()}</li>`
+                        ).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+            </div>
+            ` : ''}
+            
+            <!-- Health Risks -->
+            ${product.health_risks ? `
+            <div class="alert-section danger" style="margin-top: 30px;">
+                <div class="alert-title">Potential Health Risks</div>
+                <div class="alert-content">${product.health_risks}</div>
+            </div>
+            ` : ''}
+            
+            <!-- Alternative Suggestions -->
+            ${product.alternative_suggestion ? `
+            <div class="alternative-section">
+                <div class="alternative-title">Healthier Alternatives</div>
+                <div class="alternative-content">${product.alternative_suggestion}</div>
+            </div>
+            ` : ''}
+            
+            <!-- Scientific Evidence -->
+            ${product.scientifc_evidence ? `
+            <div class="evidence-section">
+                <div class="evidence-title">Scientific Evidence</div>
+                <div class="evidence-content">${product.scientifc_evidence}</div>
+            </div>
+            ` : ''}
+            
+            <!-- VeriScore Breakdown -->
+            ${product.veriscore_breakdown ? `
+            <div class="evidence-section">
+                <div class="evidence-title">VeriScore Breakdown</div>
+                <div class="evidence-content">${product.veriscore_breakdown}</div>
+            </div>
+            ` : ''}
+            
+            <!-- Product Details -->
+            <div class="section-title" style="margin-top: 40px;">Product Details</div>
+            <div class="nutrition-grid">
+                ${product.price_mrp ? `
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Price (MRP)</div>
+                    <div class="nutrition-value">₹${product.price_mrp}</div>
+                </div>
+                ` : ''}
+                ${product.shelf_life_days ? `
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Shelf Life</div>
+                    <div class="nutrition-value">${product.shelf_life_days}<span class="nutrition-unit"> days</span></div>
+                </div>
+                ` : ''}
+                <div class="nutrition-item">
+                    <div class="nutrition-label">Stock Status</div>
+                    <div class="nutrition-value" style="color: ${product.in_stock === 'Yes' ? 'var(--success)' : 'var(--danger)'}">
+                        ${product.in_stock || 'Unknown'}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- All Ingredients List -->
+            ${product.Ingredients ? `
+            <div class="evidence-section" style="margin-top: 40px;">
+                <div class="evidence-title">Complete Ingredients List</div>
+                <div class="evidence-content" style="font-style: normal; line-height: 1.8;">
+                    ${product.Ingredients}
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    // Competitor Comparison Section (if competitors exist)
+    if (competitors && competitors.length > 0) {
+        html += `
+            <div class="health-card">
+                <div class="section-title">Product Comparison</div>
+                <div class="section-subtitle" style="text-align: center; margin-bottom: 30px;">
+                    How ${product.clean_name} compares to similar products
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="background: var(--forest); color: var(--cream); padding: 16px; text-align: left;">Metric</th>
+                                <th style="background: var(--accent); color: var(--cream); padding: 16px;">${product.clean_name}</th>
+                                ${competitors.map(c => `<th style="background: var(--forest); color: var(--cream); padding: 16px;">${c.clean_name}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 16px; background: var(--pearl); border-bottom: 1px solid var(--cream);">Health Score</td>
+                                <td style="padding: 16px; background: rgba(201,169,97,0.1); text-align: center; font-weight: 600;">${Math.round(product.health_score || 0)}/100</td>
+                                ${competitors.map(c => `<td style="padding: 16px; background: var(--pearl); text-align: center;">${Math.round(c.health_score || 0)}/100</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td style="padding: 16px; background: var(--pearl); border-bottom: 1px solid var(--cream);">VeriScore</td>
+                                <td style="padding: 16px; background: rgba(201,169,97,0.1); text-align: center; font-weight: 600;">${product.veriscore_total || 'N/A'}</td>
+                                ${competitors.map(c => `<td style="padding: 16px; background: var(--pearl); text-align: center;">${c.veriscore_total || 'N/A'}</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td style="padding: 16px; background: var(--pearl); border-bottom: 1px solid var(--cream);">Calories</td>
+                                <td style="padding: 16px; background: rgba(201,169,97,0.1); text-align: center; font-weight: 600;">${product.calories || 'N/A'}</td>
+                                ${competitors.map(c => `<td style="padding: 16px; background: var(--pearl); text-align: center;">${c.calories || 'N/A'}</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td style="padding: 16px; background: var(--pearl); border-bottom: 1px solid var(--cream);">Protein</td>
+                                <td style="padding: 16px; background: rgba(201,169,97,0.1); text-align: center; font-weight: 600;">${product.protein_g || 0}g</td>
+                                ${competitors.map(c => `<td style="padding: 16px; background: var(--pearl); text-align: center;">${c.protein_g || 0}g</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td style="padding: 16px; background: var(--pearl); border-bottom: 1px solid var(--cream);">Sugar</td>
+                                <td style="padding: 16px; background: rgba(201,169,97,0.1); text-align: center; font-weight: 600;">${product.sugar_g || 0}g</td>
+                                ${competitors.map(c => `<td style="padding: 16px; background: var(--pearl); text-align: center;">${c.sugar_g || 0}g</td>`).join('')}
+                            </tr>
+                            <tr>
+                                <td style="padding: 16px; background: var(--pearl); border-bottom: 1px solid var(--cream);">Price (MRP)</td>
+                                <td style="padding: 16px; background: rgba(201,169,97,0.1); text-align: center; font-weight: 600;">₹${product.price_mrp || 'N/A'}</td>
+                                ${competitors.map(c => `<td style="padding: 16px; background: var(--pearl); text-align: center;">₹${c.price_mrp || 'N/A'}</td>`).join('')}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += `
+        <div class="button-group" style="margin-top: 60px;">
+            <button onclick="startScanner()" class="btn-primary">Scan Another Product</button>
+            <button onclick="shareResults('${product.clean_name}', ${healthScore})" class="btn-secondary">Share Analysis</button>
+        </div>
+    `;
+    
+    document.getElementById('result').innerHTML = html;
+    setTimeout(() => document.getElementById('result').scrollIntoView({behavior: 'smooth'}), 100);
+}
+
+function shareResults(productName, healthScore) {
+    const text = `${productName} – Health Score: ${healthScore}/100 (Analyzed via NaturalScan)`;
+    if (navigator.share) {
+        navigator.share({
+            title: `${productName} Analysis`,
+            text: text,
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(text).then(() => 
+            alert('Analysis copied to clipboard')
+        );
+    }
+}
+
+function stopScanner() {
+    isScanning = false;
+    lastDetectedBarcode = null;
+    detectionConfidence = 0;
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    if (context) context.clearRect(0, 0, canvas.width, canvas.height);
+    if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+    }
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+}
+
+window.addEventListener('beforeunload', () => {
+    if (isScanning) stopScanner();
+});
+</script>
+</body>
+</html>
