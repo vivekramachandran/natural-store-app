@@ -770,6 +770,8 @@ async function onBarcodeDetected(barcode, formatted) {
 
 async function fetchProductInfo(barcode) {
     try {
+        console.log('Searching for barcode:', barcode);
+        
         // Query the products table with the new structure
         const {data: product, error} = await supabase
             .from('products')
@@ -777,40 +779,91 @@ async function fetchProductInfo(barcode) {
             .eq('barcode', barcode)
             .single();
         
-        if (error || !product) {
+        console.log('Database response:', {product, error});
+        
+        // Check if product actually exists with valid data
+        if (error) {
+            console.log('Database error:', error);
+            if (error.code === 'PGRST116') {
+                // No rows returned
+                document.getElementById('result').innerHTML = `
+                    <div class="status-message status-error">
+                        Product not found in database
+                        <div style="margin-top:16px;font-size:12px;">Barcode: ${barcode}</div>
+                        <div style="margin-top:8px;font-size:11px;color:var(--silver);">This product is not yet in our system</div>
+                    </div>
+                    <div class="button-group" style="margin-top:24px;">
+                        <button onclick="startScanner()" class="btn-primary">Scan Another Product</button>
+                    </div>`;
+            } else {
+                // Other database error
+                document.getElementById('result').innerHTML = `
+                    <div class="status-message status-error">
+                        Database error occurred
+                        <div style="margin-top:16px;font-size:12px;">Error: ${error.message}</div>
+                    </div>
+                    <div class="button-group" style="margin-top:24px;">
+                        <button onclick="startScanner()" class="btn-primary">Try Again</button>
+                    </div>`;
+            }
+            return;
+        }
+        
+        // Double-check that product exists and has essential data
+        if (!product || !product.product_id) {
+            console.log('Invalid product data:', product);
             document.getElementById('result').innerHTML = `
                 <div class="status-message status-error">
-                    Product not found
+                    Product data incomplete
                     <div style="margin-top:16px;font-size:12px;">Barcode: ${barcode}</div>
+                    <div style="margin-top:8px;font-size:11px;color:var(--silver);">Product found but data is incomplete</div>
                 </div>
                 <div class="button-group" style="margin-top:24px;">
-                    <button onclick="startScanner()" class="btn-primary">Scan Another</button>
+                    <button onclick="startScanner()" class="btn-primary">Scan Another Product</button>
                 </div>`;
             return;
         }
         
-        // Still check for competitors if you're keeping that table
-        const {data: competitorMapping} = await supabase
-            .from('competitors')
-            .select('*')
-            .eq('product_id', product.product_id)
-            .single();
+        // Product found successfully - proceed with competitors check
+        console.log('Product found:', product.clean_name || product.original_name);
         
+        // Still check for competitors if you're keeping that table
         let competitors = [];
-        if (competitorMapping) {
-            const ids = [competitorMapping.competitor_1, competitorMapping.competitor_2, competitorMapping.competitor_3].filter(id => id);
-            if (ids.length > 0) {
-                const {data: competitorProducts} = await supabase
-                    .from('products')
-                    .select('*')
-                    .in('product_id', ids);
-                competitors = competitorProducts || [];
+        try {
+            const {data: competitorMapping} = await supabase
+                .from('competitors')
+                .select('*')
+                .eq('product_id', product.product_id)
+                .single();
+            
+            if (competitorMapping) {
+                const ids = [competitorMapping.competitor_1, competitorMapping.competitor_2, competitorMapping.competitor_3].filter(id => id);
+                if (ids.length > 0) {
+                    const {data: competitorProducts} = await supabase
+                        .from('products')
+                        .select('*')
+                        .in('product_id', ids);
+                    competitors = competitorProducts || [];
+                }
             }
+        } catch (compError) {
+            console.log('Competitors lookup failed (non-critical):', compError);
+            // Continue without competitors - not a critical error
         }
         
+        // Display the product
         displayProduct(product, competitors);
+        
     } catch (err) {
-        document.getElementById('result').innerHTML = '<div class="status-message status-error">Connection error. Please check internet.</div>';
+        console.error('Unexpected error:', err);
+        document.getElementById('result').innerHTML = `
+            <div class="status-message status-error">
+                Connection error
+                <div style="margin-top:16px;font-size:12px;">Please check your internet connection and try again</div>
+            </div>
+            <div class="button-group" style="margin-top:24px;">
+                <button onclick="startScanner()" class="btn-primary">Try Again</button>
+            </div>`;
     }
 }
 
